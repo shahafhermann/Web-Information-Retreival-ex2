@@ -89,12 +89,16 @@ public class Dictionary implements Serializable {
 
     private void build(String sortedTermsFile) {
         try (BufferedReader reader = new BufferedReader(new FileReader(new File(sortedTermsFile)))){
-            String line = reader.readLine();
+            String line;
             TreeMap<Integer, Integer> termData = new TreeMap<>();
             String prevTerm = "";
             int i = -1;
 
             while ((line = reader.readLine()) != null) {  // TODO: Might be super bugged
+                if (line.isEmpty()) {
+                    continue;
+                }
+
                 webdata.utils.Line lineObject = new Line(line);
                 String term = lineObject.getTerm();
 

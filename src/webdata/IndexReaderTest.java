@@ -11,7 +11,7 @@ import java.util.function.Function;
 import static org.junit.jupiter.api.Assertions.*;
 
 class IndexReaderTest {
-	final static String indexDir = "/Users/shahaf/Documents/UNI/אחזור מידע באינטרנט/ex1/indexFiles";
+	final static String indexDir = "/Users/shahaf/Documents/UNI/אחזור מידע באינטרנט/ex2/indexFiles";
 	final static String inputFile = "1000.txt";
 	static private IndexReader indexReader;
 	static private SlowIndexWriter indexWriter;

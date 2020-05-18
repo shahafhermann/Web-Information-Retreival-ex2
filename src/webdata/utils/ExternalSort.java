@@ -6,13 +6,10 @@ import java.util.*;
 
 public class ExternalSort {
 
-    private static final int BLOCK_SIZE = 2 ^ 12;
+    private static final int BLOCK_SIZE = 2 ^ 14;
     private static final int NUMBER_LINES_IN_BLOCK = 80;
-    private static final int M = 260000;  // TODO
+    private static final int M = 260000;  // TODO update numbers
     private static final String SORT_TEMP_FILE_NAME = "sort_temp_%d.txt";
-    private static final String SPACE_DELIMITER = " ";
-    private static final String TEMP1_SELECTED_FILE_NAME = "temp_selected_1.txt";
-    private static final String TEMP2_SELECTED_FILE_NAME = "temp_selected_2.txt";
 
     /***
      * This method performs merge sort on the first column of the table in the given in file, R(A,B,C) or S(A,D,E),
@@ -63,6 +60,10 @@ public class ExternalSort {
 
         // Add the last line of the chunk outside the loop
         while (line != null && blockLines.size() < NUMBER_LINES_IN_BLOCK * M - 1) {
+            if (line.isEmpty()) {
+                line = reader.readLine();
+                continue;
+            }
             blockLines.add(new webdata.utils.Line(line));
             line = reader.readLine();
         }

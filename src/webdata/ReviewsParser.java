@@ -112,10 +112,10 @@ public class ReviewsParser {
         int tokenCounter = 0;
         for (String token: tokens) {
             if (!token.isEmpty()) {
-//                addTerm(tokenDict, token, reviewId);  // TODO: to delete
                 tokenWriter.newLine();
                 tokenWriter.write(token.concat("#").concat(String.valueOf(numOfReviews)));
                 countTerms(token, true);
+
                 ++tokenCounter;
             }
         }
@@ -128,11 +128,11 @@ public class ReviewsParser {
      * @param isToken Indicates if the term is a token or a product
      */
     private void countTerms(String term, Boolean isToken) {
-        if (isToken && !allTokens.contains(term)) {
-            allTokens = allTokens.concat("#").concat(term);
+        if (isToken && !allTokens.contains("#" + term + "$")) {
+            allTokens = allTokens.concat("#").concat(term).concat("$");
             ++numOfUniqueTokens;
-        } else if(!isToken && !allProducts.contains(term)) {
-            allProducts = allProducts.concat("#").concat(term);
+        } else if(!isToken && !allProducts.contains("#" + term + "$")) {
+            allProducts = allProducts.concat("#").concat(term).concat("$");
             ++numOfUniqueProducts;
         }
     }
