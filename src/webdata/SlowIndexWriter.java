@@ -1,5 +1,7 @@
 package webdata;
 
+import webdata.utils.ExternalSort;
+
 import java.io.*;
 import java.util.Arrays;
 
@@ -13,6 +15,9 @@ public class SlowIndexWriter{
     static final String reviewDataFileName = "reviewData";
     static final String productPostingListFileName = "productPostingList";
     static final String tokenPostingListFileName = "tokenPostingList";
+    private final String tokensFileName = "tokenFile";
+    private final String productsFileName = "productFile";
+    private final String sortedIndicator = "_sorted";
 
     /**
      * Given product review data, creates an on disk index.
@@ -34,11 +39,16 @@ public class SlowIndexWriter{
             }
         }
 
-        ReviewsParser parser = new ReviewsParser();
+        String tokensFilePath = dir + File.separator + tokensFileName;
+        String productsFilePath = dir + File.separator + productsFileName;
+        String sortedTokensFilePath = dir + File.separator + tokensFileName + sortedIndicator;
+        String sortedProductsFilePath = dir + File.separator + productsFileName + sortedIndicator;
+
+        ReviewsParser parser = new ReviewsParser(tokensFilePath, productsFilePath);
         parser.parseFile(inputFile);
 
-        Dictionary tokenDict = new Dictionary(parser.getTokenDict(), false, dir);
-        Dictionary productDict = new Dictionary(parser.getProductDict(), true, dir);
+        Dictionary tokenDict = buildDictionary(tokensFilePath, sortedTokensFilePath, dir, parser.getNumOfUniqueTokens(), false);
+        Dictionary productDict = buildDictionary(productsFilePath, sortedProductsFilePath, dir, parser.getNumOfUniqueProducts(), true);
 
         ReviewData rd = new ReviewData(parser.getProductId(), parser.getReviewHelpfulness(),
                 parser.getReviewScore(), parser.getTokensPerReview(), parser.getNumOfReviews());
@@ -85,25 +95,10 @@ public class SlowIndexWriter{
      * @param dir The directory to remove the index from.
      */
     private void removeFiles(String dir) {
-//        File tokenDictFile = new File(dir + File.separator + tokenDictFileName);
-//        tokenDictFile.delete();
         deleteFile(dir, tokenDictFileName);
-
-//        File productDictFile = new File(dir + File.separator + productDictFileName);
-//        productDictFile.delete();
         deleteFile(dir, productDictFileName);
-
-//        File reviewDataFile = new File(dir + File.separator + reviewDataFileName);
-//        reviewDataFile.delete();
         deleteFile(dir, reviewDataFileName);
-
-//        File productPostingListFile = new File(dir + File.separator + productPostingListFileName);
-//        productPostingListFile.delete();
         deleteFile(dir, productPostingListFileName);
-
-
-//        File tokenPostingListFile = new File(dir + File.separator + tokenPostingListFileName);
-//        tokenPostingListFile.delete();
         deleteFile(dir, tokenPostingListFileName);
     }
 
@@ -117,5 +112,18 @@ public class SlowIndexWriter{
         if (f.exists()) {
             f.delete();
         }
+    }
+
+    private Dictionary buildDictionary(String in, String out, String dir, int numOfTerms, Boolean isProduct) {
+        /* Sort */
+        ExternalSort.sort(in, out, dir);
+        // TODO: Delete the temp files + input file
+
+        Dictionary dict = new Dictionary(numOfTerms, out,isProduct, dir);
+
+        /* Delete sorted */
+        // TODO: deleted sorted
+
+        return dict;
     }
 }

@@ -1,5 +1,7 @@
 package webdata;
 
+import webdata.utils.Line;
+
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -24,13 +26,15 @@ public class Dictionary implements Serializable {
     private byte[] prefixSize;
 
     /**
-     * Constructor.
-     * @param termDict A mapping of tokens to their relevant frequencies.
-     * @param isProduct Indicate whether the given map is of token or products.
+     * Constructor
+     * @param numOfTerms Number of terms in the file
+     * @param sortedTermsFile The sorted file of terms
+     * @param isProduct Indicates if the term is productId or token
+     * @param dir The directory in which the dictionary is saved
      */
-    Dictionary(TreeMap<String, TreeMap<Integer, Integer>> termDict, Boolean isProduct, String dir) {
+    Dictionary(int numOfTerms, String sortedTermsFile, Boolean isProduct, String dir) {
         this.isProduct = isProduct;
-        numOfTerms = termDict.size();
+        this.numOfTerms = numOfTerms;
         numOfBlocks = (int)Math.ceil(numOfTerms / (double)K);
         termPtr = new int[numOfBlocks];
 
@@ -43,7 +47,7 @@ public class Dictionary implements Serializable {
         length = new byte[numOfTerms];
         prefixSize = new byte[numOfTerms];
 
-        build(termDict);
+        build(sortedTermsFile);
     }
 
     /**
@@ -57,29 +61,99 @@ public class Dictionary implements Serializable {
      * Build the concatenated String with all known tokens.
      * Update all data structures with it's info.
      */
-    private void build(TreeMap<String, TreeMap<Integer, Integer>> termDict) {
-        int i = 0;
-        String prevTerm = "";
+//    private void build(String sortedTermsFile) {
+//        int i = 0;
+//        String prevTerm = "";
+//
+//        for (String term: termDict.keySet()) {  // For each token
+//            if (i % K == 0) {
+//                termPtr[(i / K)] = concatStr.length();
+//                prefixSize[i] = 0;
+//                concatStr = concatStr.concat(term);
+//            }
+//            else {
+//                byte psize = findPrefix(prevTerm, term);
+//                prefixSize[i] = psize;
+//                concatStr = concatStr.concat(term.substring(psize));
+//            }
+//
+//            buildFrequency(termDict.get(term), i);
+//
+//            buildPostingList(termDict.get(term), i);
+//
+//            length[i] = (byte) term.length();
+//            prevTerm = term;
+//            ++i;
+//        }
+//    }
 
-        for (String term: termDict.keySet()) {  // For each token
-            if (i % K == 0) {
-                termPtr[(i / K)] = concatStr.length();
-                prefixSize[i] = 0;
-                concatStr = concatStr.concat(term);
+    private void build(String sortedTermsFile) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(new File(sortedTermsFile)))){
+            String line = reader.readLine();
+            TreeMap<Integer, Integer> termData = new TreeMap<>();
+            String prevTerm = "";
+            int i = -1;
+
+            while ((line = reader.readLine()) != null) {  // TODO: Might be super bugged
+                webdata.utils.Line lineObject = new Line(line);
+                String term = lineObject.getTerm();
+
+                if (!term.equals(prevTerm)) {
+                    if (i > -1) {
+                        buildFrequency(termData, i);
+                        buildPostingList(termData, i);
+                        termData.clear();
+                    }
+                    ++i;
+
+                    // Turn a new page
+                    if (i % K == 0) {
+                        termPtr[(i / K)] = concatStr.length();
+                        prefixSize[i] = 0;
+                        concatStr = concatStr.concat(term);
+                    }
+                    else {
+                        byte psize = findPrefix(prevTerm, term);
+                        prefixSize[i] = psize;
+                        concatStr = concatStr.concat(term.substring(psize));
+                    }
+
+                    length[i] = (byte) term.length();
+
+                    prevTerm = term;
+                }
+                addTerm(termData, lineObject.getReviewId());
+            }
+
+            if (i > -1) {
+                buildFrequency(termData, i);
+                buildPostingList(termData, i);
+                termData.clear();
+            }
+        } catch (IOException e) {
+            System.err.println(e.getMessage());
+            System.exit(1);
+        }
+    }
+
+    /**
+     * Adds a new term to the given dictionary at the correct review
+     * @param termData The dictionary to add the review and frequency to
+     * @param reviewId The review to which the term belongs
+     */
+    private void addTerm(TreeMap<Integer, Integer> termData, int reviewId) {
+        if (termData.isEmpty()) {
+            termData.put(reviewId, 1);
+        }
+        else {
+            Integer lastReview = termData.lastKey();
+            Integer lastFrequency = termData.get(lastReview);
+            if (lastReview == reviewId) {
+                termData.replace(lastReview, lastFrequency + 1);
             }
             else {
-                byte psize = findPrefix(prevTerm, term);
-                prefixSize[i] = psize;
-                concatStr = concatStr.concat(term.substring(psize));
+                termData.put(reviewId, 1);
             }
-
-            buildFrequency(termDict.get(term), i);
-
-            buildPostingList(termDict.get(term), i);
-
-            length[i] = (byte) term.length();
-            prevTerm = term;
-            ++i;
         }
     }
 
