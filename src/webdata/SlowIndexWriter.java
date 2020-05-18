@@ -115,14 +115,27 @@ public class SlowIndexWriter{
     }
 
     private Dictionary buildDictionary(String in, String out, String dir, int numOfTerms, Boolean isProduct) {
+        String tmpDirName = dir + File.separator + "tmp";
+        File tmpDir = new File(tmpDirName);
+        if (!tmpDir.exists()) {
+            try{
+                tmpDir.mkdir();
+            }
+            catch(SecurityException e){
+                System.err.println(e.getMessage());
+                System.exit(1);
+            }
+        }
+
         /* Sort */
-        ExternalSort.sort(in, out, dir);
-        // TODO: Delete the temp files + input file
+        ExternalSort.sort(in, out, tmpDirName);
+        deleteFile(dir, in);
+        tmpDir.delete();
 
         Dictionary dict = new Dictionary(numOfTerms, out,isProduct, dir);
 
         /* Delete sorted */
-        // TODO: deleted sorted
+        deleteFile(dir, out);
 
         return dict;
     }
