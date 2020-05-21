@@ -73,8 +73,12 @@ public class Dictionary implements Serializable {
                     continue;
                 }
 
-                webdata.utils.Line lineObject = new Line(line);
-                String term = lineObject.getTerm();
+//                webdata.utils.Line lineObject = new Line(line);
+//                String term = lineObject.getTerm();
+                String[] split = line.split("#");
+                String term = split[0];
+                int reviewId = Integer.parseInt(split[1]);
+
 
                 if (!term.equals(prevTerm)) {
                     if (i > -1) {
@@ -100,7 +104,7 @@ public class Dictionary implements Serializable {
 
                     prevTerm = term;
                 }
-                addTerm(termData, lineObject.getReviewId());
+                addTerm(termData, reviewId);
             }
 
             if (i > -1) {

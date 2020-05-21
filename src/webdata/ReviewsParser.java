@@ -23,14 +23,6 @@ public class ReviewsParser {
     private final String SPLIT_TOKENS_REGEX = "[^A-Za-z0-9]+";
     private final String TERM_DELIMITER_IN_FILE = "#";
 
-    /* Auxiliary variables for counting unique tokens and productIds */
-    private final String TERM_START_DELIMITER = "#";
-    private final String TERM_END_DELIMITER = "$";
-    private String allTokens = "";
-    private int numOfUniqueTokens = 0;
-    private String allProducts = "";
-    private int numOfUniqueProducts = 0;
-
     /* File paths to save the terms lists */
     private String tokensFilePath;
     private String productsFilePath;
@@ -39,16 +31,6 @@ public class ReviewsParser {
         this.tokensFilePath = tokensFilePath;
         this.productsFilePath = productsFilePath;
     }
-
-    /**
-     * Returns the number of unique tokens
-     */
-    int getNumOfUniqueTokens() { return numOfUniqueTokens; }
-
-    /**
-     * Returns the number of unique products
-     */
-    int getNumOfUniqueProducts() { return numOfUniqueProducts; }
 
     /**
      * Return the review scores as an ArrayList of Strings
@@ -102,27 +84,11 @@ public class ReviewsParser {
             if (!token.isEmpty()) {
                 tokenWriter.newLine();
                 tokenWriter.write(token.concat(TERM_DELIMITER_IN_FILE).concat(String.valueOf(numOfReviews)));
-                countTerms(token, true);
 
                 ++tokenCounter;
             }
         }
         tokensPerReview.add((short) tokenCounter);
-    }
-
-    /**
-     * Count the number of unique terms (tokens or products)
-     * @param term The term to check if we already counted
-     * @param isToken Indicates if the term is a token or a product
-     */
-    private void countTerms(String term, Boolean isToken) {
-        if (isToken && !allTokens.contains(TERM_START_DELIMITER + term + TERM_END_DELIMITER)) {
-            allTokens = allTokens.concat(TERM_START_DELIMITER).concat(term).concat(TERM_END_DELIMITER);
-            ++numOfUniqueTokens;
-        } else if(!isToken && !allProducts.contains(TERM_START_DELIMITER + term + TERM_END_DELIMITER)) {
-            allProducts = allProducts.concat(TERM_START_DELIMITER).concat(term).concat(TERM_END_DELIMITER);
-            ++numOfUniqueProducts;
-        }
     }
 
     /**
@@ -170,11 +136,13 @@ public class ReviewsParser {
                                 breakText(textBuffer.toLowerCase(), numOfReviews, tokenWriter);
                             }
                             ++numOfReviews;
+//                            if (numOfReviews == 100001) {
+//                                break;
+//                            }
                             productIds = productIds.concat(term.group(1));
                             productWriter.newLine();
                             productWriter.write(term.group(1).concat(TERM_DELIMITER_IN_FILE)
                                                 .concat(String.valueOf(numOfReviews)));
-                            countTerms(term.group(1), false);
                             line = reader.readLine();
                             continue;
                         }

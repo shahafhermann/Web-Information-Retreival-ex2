@@ -6,9 +6,9 @@ import java.util.*;
 
 public class ExternalSort {
 
-    private static final int BLOCK_SIZE = 2 ^ 20;
-    private static final int NUMBER_LINES_IN_BLOCK = 2 ^ 14;
-    private static final int M = 2 ^ 10;  // TODO check numbers
+    private static final int BLOCK_SIZE = (int) Math.pow(2, 19);
+    private static final int NUMBER_LINES_IN_BLOCK = (int) Math.pow(2, 10);
+    private static final int M = (int) Math.pow(2, 9);  // TODO check numbers
     private static final String SORT_TEMP_FILE_NAME = "sort_temp_%d.txt";
 
     /***

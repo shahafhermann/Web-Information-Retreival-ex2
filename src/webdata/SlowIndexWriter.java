@@ -3,7 +3,7 @@ package webdata;
 import webdata.utils.ExternalSort;
 
 import java.io.*;
-import java.util.Arrays;
+import java.text.SimpleDateFormat;
 
 /**
  *
@@ -18,6 +18,11 @@ public class SlowIndexWriter{
     private final String tokensFileName = "tokenFile";
     private final String productsFileName = "productFile";
     private final String sortedIndicator = "_sorted";
+
+    private void takeTime(String msg) {
+        String timeStamp =  new SimpleDateFormat("HH.mm.ss.SS").format(new java.util.Date());
+        System.err.println(msg + " at " + timeStamp);
+    }
 
     /**
      * Given product review data, creates an on disk index.
@@ -44,29 +49,37 @@ public class SlowIndexWriter{
         String sortedTokensFilePath = dir + File.separator + tokensFileName + sortedIndicator;
         String sortedProductsFilePath = dir + File.separator + productsFileName + sortedIndicator;
 
+        takeTime("<<<<<<<<<<< *STARTED PARSING* >>>>>>>>>>");
         ReviewsParser parser = new ReviewsParser(tokensFilePath, productsFilePath);
         parser.parseFile(inputFile);
+        takeTime("<<<<<<<<<<< *PARSE DONE* >>>>>>>>>>");
 
-        Dictionary tokenDict = buildDictionary(tokensFilePath, sortedTokensFilePath, dir, parser.getNumOfUniqueTokens(), false);
-        Dictionary productDict = buildDictionary(productsFilePath, sortedProductsFilePath, dir, parser.getNumOfUniqueProducts(), true);
+        Dictionary tokenDict = buildDictionary(tokensFilePath, sortedTokensFilePath, dir, false);
+        takeTime("<<<<<<<<<<< *DONE BUILDING TOKEN DICTIONARY* >>>>>>>>>>");
+        Dictionary productDict = buildDictionary(productsFilePath, sortedProductsFilePath, dir, true);
+        takeTime("<<<<<<<<<<< *DONE BUILDING PRODUCT DICTIONARY* >>>>>>>>>>");
 
         ReviewData rd = new ReviewData(parser.getProductIds(), parser.getReviewHelpfulnessNumerator(),
                                        parser.getReviewHelpfulnessDenominator(), parser.getReviewScore(),
                                        parser.getTokensPerReview(), parser.getNumOfReviews());
+        takeTime("<<<<<<<<<<< *DONE BUILDING REVIEW DATA* >>>>>>>>>>");
 
         try {
             /* Write the new files */
             ObjectOutputStream tokenDictWriter = new ObjectOutputStream(new FileOutputStream(dir + File.separator + tokenDictFileName));
             tokenDictWriter.writeObject(tokenDict);
             tokenDictWriter.close();
+            takeTime("<<<<<<<<<<< *DONE WRITING TOKEN DICT TO FILE* >>>>>>>>>>");
 
             ObjectOutputStream productDictWriter = new ObjectOutputStream(new FileOutputStream(dir + File.separator + productDictFileName));
             productDictWriter.writeObject(productDict);
             productDictWriter.close();
+            takeTime("<<<<<<<<<<< *DONE WRITING PRODUCT DICT TO FILE* >>>>>>>>>>");
 
             ObjectOutputStream reviewDataWriter = new ObjectOutputStream(new FileOutputStream(dir + File.separator + reviewDataFileName));
             reviewDataWriter.writeObject(rd);
             reviewDataWriter.close();
+            takeTime("<<<<<<<<<<< *DONE WRITING REVIEW DATA TO FILE* >>>>>>>>>>");
         } catch(IOException e) {
             System.err.println(e.getMessage());
             System.exit(1);
@@ -115,7 +128,7 @@ public class SlowIndexWriter{
         }
     }
 
-    private Dictionary buildDictionary(String in, String out, String dir, int numOfTerms, Boolean isProduct) {
+    private Dictionary buildDictionary(String in, String out, String dir, Boolean isProduct) {
         String tmpDirName = dir + File.separator + "tmp";
         File tmpDir = new File(tmpDirName);
         if (!tmpDir.exists()) {
@@ -131,13 +144,43 @@ public class SlowIndexWriter{
         /* Sort */
         ExternalSort.sort(in, out, tmpDirName);
         deleteFile(dir, in);
-        tmpDir.delete();
+        removeIndex(tmpDirName);
 
-        Dictionary dict = new Dictionary(numOfTerms, out,isProduct, dir);
+        int numOfTerms = countTerms(out);
+
+        Dictionary dict = new Dictionary(numOfTerms, out, isProduct, dir);
 
         /* Delete sorted */
         deleteFile(dir, out);
 
         return dict;
+    }
+
+    private int countTerms(String fileName) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(new File(fileName)))){
+            String line;
+            String prevTerm = "";
+            int i = 0;
+
+            while ((line = reader.readLine()) != null) {  // TODO: Might be super bugged
+                if (line.isEmpty()) {
+                    continue;
+                }
+
+                String term = line.split("#")[0];
+
+                if (!term.equals(prevTerm)) {
+                    ++i;
+                    prevTerm = term;
+                }
+            }
+
+            return i;
+
+        } catch (IOException e) {
+            System.err.println(e.getMessage());
+            System.exit(1);
+        }
+        return -1;  // Will never reach
     }
 }
