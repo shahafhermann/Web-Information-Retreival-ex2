@@ -142,13 +142,17 @@ public class SlowIndexWriter{
         }
 
         /* Sort */
+        takeTime("<<<<<<<<<<< *STARTED SORTING* >>>>>>>>>>");
         ExternalSort.sort(in, out, tmpDirName);
+        takeTime("<<<<<<<<<<< *FINISHED SORTING* >>>>>>>>>>");
         deleteFile(dir, in);
         removeIndex(tmpDirName);
 
         int numOfTerms = countTerms(out);
 
+        takeTime("<<<<<<<<<<< *STARTED BUILDING DICT* >>>>>>>>>>");
         Dictionary dict = new Dictionary(numOfTerms, out, isProduct, dir);
+        takeTime("<<<<<<<<<<< *DONE BUILDING DICT* >>>>>>>>>>");
 
         /* Delete sorted */
         deleteFile(dir, out);
