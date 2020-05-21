@@ -30,23 +30,22 @@ class ReviewData implements Serializable {
 
     /**
      * Construct the review data object
-     * @param productId ArrayList of Strings representing all product IDs
-     * @param reviewHelpfulness ArrayList of Strings representing all helpfulness data
+     * @param productId String representing all product IDs concatenated
+     * @param reviewHelpfulnessN ArrayList of Shorts representing all helpfulness Numerator data
+     * @param reviewHelpfulnessD ArrayList of Shorts representing all helpfulness Denominator data
      * @param reviewScore ArrayList of Strings representing all review scores
      * @param tokensPerReview ArrayList of Strings representing the number of tokens per review
      * @param numOfReviews The total number of reviews
      */
-    ReviewData (ArrayList<String> productId, ArrayList<String> reviewHelpfulness, ArrayList<String> reviewScore,
-                ArrayList<String> tokensPerReview, int numOfReviews) {
-        productIdLen = (byte) productId.get(0).length();
-        this.productId = "";
-        for (String product: productId) {
-            this.productId = this.productId.concat(product);
-        }
+    ReviewData (String productId, ArrayList<Short> reviewHelpfulnessN, ArrayList<Short> reviewHelpfulnessD,
+                ArrayList<Byte> reviewScore, ArrayList<Short> tokensPerReview, int numOfReviews) {
+        productIdLen = (byte) (productId.length() / numOfReviews);
+        this.productId = productId;
 
         this.reviewHelpfulnessNumerator = new short[numOfReviews];
         this.reviewHelpfulnessDenominator = new short[numOfReviews];
-        toPrimitiveArray(reviewHelpfulness, this.reviewHelpfulnessNumerator, this.reviewHelpfulnessDenominator);
+        toPrimitiveArray(reviewHelpfulnessN, this.reviewHelpfulnessNumerator);
+        toPrimitiveArray(reviewHelpfulnessD, this.reviewHelpfulnessDenominator);
 
         this.reviewScore = new byte[numOfReviews];
         toPrimitiveArray(reviewScore, this.reviewScore);
@@ -57,38 +56,24 @@ class ReviewData implements Serializable {
     }
 
     /**
-     * Convert an ArrayList of String (with '/' delimiter) to 2 arrays seperated by the delimiter.
-     * @param list The array list of strings
-     * @param numeratorArr Array of words before the delimiter
-     * @param denominatorArr Array of words after the delimiter
+     * Convert an ArrayList of Short to short array
+     * @param list ArrayList of Short
+     * @param arr Array to populate
      */
-    private void toPrimitiveArray(ArrayList<String> list, short[] numeratorArr, short[] denominatorArr) {
+    private void toPrimitiveArray(ArrayList<Short> list, short[] arr) {
         for (int i = 0; i < list.size(); ++i) {
-            String[] split = list.get(i).split("/");
-            numeratorArr[i] = Short.parseShort(split[0]);
-            denominatorArr[i] = Short.parseShort(split[1]);
+            arr[i] = list.get(i);
         }
     }
 
     /**
-     * Convert an ArrayList of String to short array
-     * @param list ArrayList of String
+     * Convert an ArrayList of Byte to byte array
+     * @param list ArrayList of Byte
      * @param arr Array to populate
      */
-    private void toPrimitiveArray(ArrayList<String> list, short[] arr) {
+    private void toPrimitiveArray(ArrayList<Byte> list, byte[] arr) {
         for (int i = 0; i < list.size(); ++i) {
-            arr[i] = Short.parseShort(list.get(i));
-        }
-    }
-
-    /**
-     * Convert an ArrayList of String to byte array
-     * @param list ArrayList of String
-     * @param arr Array to populate
-     */
-    private void toPrimitiveArray(ArrayList<String> list, byte[] arr) {
-        for (int i = 0; i < list.size(); ++i) {
-            arr[i] = Byte.parseByte(list.get(i).split("\\.")[0]);
+            arr[i] = list.get(i);
         }
     }
 

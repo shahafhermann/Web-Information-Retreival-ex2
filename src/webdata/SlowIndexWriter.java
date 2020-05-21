@@ -50,8 +50,9 @@ public class SlowIndexWriter{
         Dictionary tokenDict = buildDictionary(tokensFilePath, sortedTokensFilePath, dir, parser.getNumOfUniqueTokens(), false);
         Dictionary productDict = buildDictionary(productsFilePath, sortedProductsFilePath, dir, parser.getNumOfUniqueProducts(), true);
 
-        ReviewData rd = new ReviewData(parser.getProductId(), parser.getReviewHelpfulness(),
-                parser.getReviewScore(), parser.getTokensPerReview(), parser.getNumOfReviews());
+        ReviewData rd = new ReviewData(parser.getProductIds(), parser.getReviewHelpfulnessNumerator(),
+                                       parser.getReviewHelpfulnessDenominator(), parser.getReviewScore(),
+                                       parser.getTokensPerReview(), parser.getNumOfReviews());
 
         try {
             /* Write the new files */

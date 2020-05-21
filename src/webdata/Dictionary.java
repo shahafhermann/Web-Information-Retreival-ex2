@@ -61,32 +61,6 @@ public class Dictionary implements Serializable {
      * Build the concatenated String with all known tokens.
      * Update all data structures with it's info.
      */
-//    private void build(String sortedTermsFile) {
-//        int i = 0;
-//        String prevTerm = "";
-//
-//        for (String term: termDict.keySet()) {  // For each token
-//            if (i % K == 0) {
-//                termPtr[(i / K)] = concatStr.length();
-//                prefixSize[i] = 0;
-//                concatStr = concatStr.concat(term);
-//            }
-//            else {
-//                byte psize = findPrefix(prevTerm, term);
-//                prefixSize[i] = psize;
-//                concatStr = concatStr.concat(term.substring(psize));
-//            }
-//
-//            buildFrequency(termDict.get(term), i);
-//
-//            buildPostingList(termDict.get(term), i);
-//
-//            length[i] = (byte) term.length();
-//            prevTerm = term;
-//            ++i;
-//        }
-//    }
-
     private void build(String sortedTermsFile) {
         try (BufferedReader reader = new BufferedReader(new FileReader(new File(sortedTermsFile)))){
             String line;

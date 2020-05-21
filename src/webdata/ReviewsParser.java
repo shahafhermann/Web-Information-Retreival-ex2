@@ -11,20 +11,27 @@ import java.util.regex.Pattern;
  */
 public class ReviewsParser {
 
-//    private TreeMap<String, TreeMap<Integer, Integer>> tokenDict = new TreeMap<>();
-//    private TreeMap<String, TreeMap<Integer, Integer>> productDict = new TreeMap<>();
-    private ArrayList<String> reviewScore = new ArrayList<>();
-    private ArrayList<String> reviewHelpfulness = new ArrayList<>();
-    private ArrayList<String> productId = new ArrayList<>();
-    private ArrayList<String> tokensPerReview = new ArrayList<>();
+    /* Data */
+    private ArrayList<Byte> reviewScore = new ArrayList<>();
+    private ArrayList<Short> reviewHelpfulnessNumerator = new ArrayList<>();
+    private ArrayList<Short> reviewHelpfulnessDenominator = new ArrayList<>();
+    private ArrayList<Short> tokensPerReview = new ArrayList<>();
     private int numOfReviews = 0;
+    private String productIds = "";
 
+    /* String constants */
+    private final String SPLIT_TOKENS_REGEX = "[^A-Za-z0-9]+";
+    private final String TERM_DELIMITER_IN_FILE = "#";
+
+    /* Auxiliary variables for counting unique tokens and productIds */
+    private final String TERM_START_DELIMITER = "#";
+    private final String TERM_END_DELIMITER = "$";
     private String allTokens = "";
     private int numOfUniqueTokens = 0;
-
     private String allProducts = "";
     private int numOfUniqueProducts = 0;
 
+    /* File paths to save the terms lists */
     private String tokensFilePath;
     private String productsFilePath;
 
@@ -46,28 +53,35 @@ public class ReviewsParser {
     /**
      * Return the review scores as an ArrayList of Strings
      */
-    ArrayList<String> getReviewScore() {
+    ArrayList<Byte> getReviewScore() {
         return reviewScore;
     }
 
     /**
-     * Return the review helpfulness as an ArrayList of Strings
+     * Return the review helpfulness numerator as an ArrayList of Strings
      */
-    ArrayList<String> getReviewHelpfulness() {
-        return reviewHelpfulness;
+    ArrayList<Short> getReviewHelpfulnessNumerator() {
+        return reviewHelpfulnessNumerator;
+    }
+
+    /**
+     * Return the review helpfulness denominator as an ArrayList of Strings
+     */
+    ArrayList<Short> getReviewHelpfulnessDenominator() {
+        return reviewHelpfulnessDenominator;
     }
 
     /**
      * Return the review product IDs as an ArrayList of Strings
      */
-    ArrayList<String> getProductId() {
-        return productId;
+    String getProductIds() {
+        return productIds;
     }
 
     /**
      * Return the number of token per review as an ArrayList of Strings
      */
-    ArrayList<String> getTokensPerReview() {
+    ArrayList<Short> getTokensPerReview() {
         return tokensPerReview;
     }
 
@@ -77,49 +91,23 @@ public class ReviewsParser {
     int getNumOfReviews() { return numOfReviews;}
 
     /**
-     * Adds a new term to the given dictionary at the correct review
-     * @param termDict The dictionary to add the term to
-     * @param term The term to add
-     * @param reviewId The review to which the term belongs
-     */
-//    private void addTerm(TreeMap<String, TreeMap<Integer, Integer>> termDict, String term, int reviewId) {
-//        if (!termDict.containsKey(term)) {
-//            TreeMap<Integer, Integer> termData = new TreeMap<>();
-//            termData.put(reviewId, 1);
-//            termDict.put(term, termData);
-//        }
-//        else {
-//            TreeMap<Integer, Integer> termData = termDict.get(term);
-//            Integer lastReview = termData.lastKey();
-//            Integer lastFrequency = termData.get(lastReview);
-//            if (lastReview == reviewId) {
-//                termData.replace(lastReview, lastFrequency + 1);
-//            }
-//            else {
-//                termData.put(reviewId, 1);
-//            }
-//            termDict.replace(term, termData);
-//        }
-//    }
-
-    /**
      * Break a text to all it's tokens (alphanumeric).
      * @param text The text to break
      * @param reviewId The review to which the text belongs
      */
     private void breakText(String text, int reviewId, BufferedWriter tokenWriter) throws IOException {
-        String[] tokens = text.split("[^A-Za-z0-9]+");
+        String[] tokens = text.split(SPLIT_TOKENS_REGEX);
         int tokenCounter = 0;
         for (String token: tokens) {
             if (!token.isEmpty()) {
                 tokenWriter.newLine();
-                tokenWriter.write(token.concat("#").concat(String.valueOf(numOfReviews)));
+                tokenWriter.write(token.concat(TERM_DELIMITER_IN_FILE).concat(String.valueOf(numOfReviews)));
                 countTerms(token, true);
 
                 ++tokenCounter;
             }
         }
-        tokensPerReview.add(String.valueOf(tokenCounter));
+        tokensPerReview.add((short) tokenCounter);
     }
 
     /**
@@ -128,13 +116,31 @@ public class ReviewsParser {
      * @param isToken Indicates if the term is a token or a product
      */
     private void countTerms(String term, Boolean isToken) {
-        if (isToken && !allTokens.contains("#" + term + "$")) {
-            allTokens = allTokens.concat("#").concat(term).concat("$");
+        if (isToken && !allTokens.contains(TERM_START_DELIMITER + term + TERM_END_DELIMITER)) {
+            allTokens = allTokens.concat(TERM_START_DELIMITER).concat(term).concat(TERM_END_DELIMITER);
             ++numOfUniqueTokens;
-        } else if(!isToken && !allProducts.contains("#" + term + "$")) {
-            allProducts = allProducts.concat("#").concat(term).concat("$");
+        } else if(!isToken && !allProducts.contains(TERM_START_DELIMITER + term + TERM_END_DELIMITER)) {
+            allProducts = allProducts.concat(TERM_START_DELIMITER).concat(term).concat(TERM_END_DELIMITER);
             ++numOfUniqueProducts;
         }
+    }
+
+    /**
+     * Parse a string resembling a review helpfulness to it's numerator and denominator.
+     * @param term The review helpfulness as String
+     */
+    private void writeReviewHelpfulness(String term) {
+        String[] split = term.split("/");
+        reviewHelpfulnessNumerator.add(Short.parseShort(split[0]));
+        reviewHelpfulnessDenominator.add(Short.parseShort(split[1]));
+    }
+
+    /**
+     * Parse a string resembling a review score.
+     * @param term The review helpfulness as String
+     */
+    private void writeReviewScore(String term) {
+        reviewScore.add(Byte.parseByte(term.split("\\.")[0]));
     }
 
     /**
@@ -164,10 +170,10 @@ public class ReviewsParser {
                                 breakText(textBuffer.toLowerCase(), numOfReviews, tokenWriter);
                             }
                             ++numOfReviews;
-                            productId.add(term.group(1));
-//                            addTerm(productDict, term.group(1), numOfReviews);  // TODO: to delete
+                            productIds = productIds.concat(term.group(1));
                             productWriter.newLine();
-                            productWriter.write(term.group(1).concat("#").concat(String.valueOf(numOfReviews)));
+                            productWriter.write(term.group(1).concat(TERM_DELIMITER_IN_FILE)
+                                                .concat(String.valueOf(numOfReviews)));
                             countTerms(term.group(1), false);
                             line = reader.readLine();
                             continue;
@@ -175,14 +181,14 @@ public class ReviewsParser {
 
                         term = Pattern.compile("^review/helpfulness: (.*)").matcher(line);
                         if (term.find()) {
-                            reviewHelpfulness.add(term.group(1));
+                            writeReviewHelpfulness(term.group(1));
                             line = reader.readLine();
                             continue;
                         }
 
                         term = Pattern.compile("^review/score: (.*)").matcher(line);
                         if (term.find()) {
-                            reviewScore.add(term.group(1));
+                            writeReviewScore(term.group(1));
                             line = reader.readLine();
                             continue;
                         }
