@@ -14,14 +14,14 @@ class IndexReaderTest {
 	final static String indexDir = "/Users/shahaf/Documents/UNI/אחזור מידע באינטרנט/ex2/indexFiles";
 	final static String inputFile = "1000.txt";
 	static private IndexReader indexReader;
-	static private SlowIndexWriter indexWriter;
+	static private IndexWriter indexWriter;
 	private final String msgInt = "fail on input: %d";
 	private final String msgStr = "fail on input: %s";
 
 	@BeforeAll
 	static void before() {
-		indexWriter = new SlowIndexWriter();
-		indexWriter.slowWrite(inputFile, indexDir);
+		indexWriter = new IndexWriter();
+		indexWriter.write(inputFile, indexDir);
 		indexReader = new IndexReader(indexDir);
 	}
 
@@ -133,8 +133,8 @@ class IndexReaderTest {
 		@Test
 		@DisplayName("Testing getTokenFrequency - valid inputs")
 		void getTokenFrequency() {
-			String[] inputs = {"Greatest", "Buttermilk", "Lord"};
-			int[] expectedOutputs = {2, 3, 2};
+			String[] inputs = {"to", "Greatest", "Buttermilk", "Lord"};
+			int[] expectedOutputs = {1, 2, 3, 2};
 			testTokenFrequency(inputs, expectedOutputs, indexReader::getTokenFrequency);
 		}
 
@@ -246,11 +246,11 @@ class IndexReaderTest {
 	}
 
 
-	/** comment for not checking removeIndex method of slowWriter!. */
-	@AfterAll
-	static void removeDir(){
-		indexWriter.removeIndex(indexDir);
-		File directory = new File(indexDir);
-		assertFalse(directory.exists());
-	}
+//	/** comment for not checking removeIndex method of slowWriter!. */
+//	@AfterAll
+//	static void removeDir(){
+//		indexWriter.removeIndex(indexDir);
+//		File directory = new File(indexDir);
+//		assertFalse(directory.exists());
+//	}
 }

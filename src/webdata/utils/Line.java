@@ -7,10 +7,13 @@ public class Line implements Comparable<Line>{
     private static final String COLUMN_DELIMINATOR = "#";
     private static final int TERM_INDEX = 0;
     private static final int REVIEW_ID_INDEX = 1;
+    private static final int FREQUENCY_INDEX = 2;
+
 
     // Data members
-    private String term;
+    private int term;
     private int reviewId;
+    private int frequency;
     private String line;
 
     /**
@@ -27,14 +30,15 @@ public class Line implements Comparable<Line>{
      */
     private void initLineParts(){
         String[] lineParts = this.line.split(COLUMN_DELIMINATOR);
-        this.term = lineParts[TERM_INDEX];
+        this.term = Integer.parseInt(lineParts[TERM_INDEX]);
         this.reviewId = Integer.parseInt(lineParts[REVIEW_ID_INDEX]);
+        this.frequency = Integer.parseInt(lineParts[FREQUENCY_INDEX]);
     }
 
     /**
      * Get the line's term
      */
-    public String getTerm() {
+    public int getTerm() {
         return term;
     }
 
@@ -46,16 +50,23 @@ public class Line implements Comparable<Line>{
     }
 
     /**
+     * Get the line's reviewId
+     */
+    public int getFrequency() {
+        return frequency;
+    }
+
+    /**
      * Returns an int representing the order between this line and the given other line.
      * @param o The other line to compare to.
      * @return Negative number if this line is smaller than other, 0 if equal, and positive if it is greater.
      */
     @Override
     public int compareTo(Line o) {
-        if (this.term.equals(o.term)){
+        if (this.term == o.term){
             return this.reviewId - o.reviewId;
         }
-        return this.term.compareTo(o.term);
+        return this.term - o.term;
     }
 
     /**

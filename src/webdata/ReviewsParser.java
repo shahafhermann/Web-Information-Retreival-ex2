@@ -2,6 +2,7 @@ package webdata;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -12,6 +13,9 @@ import java.util.regex.Pattern;
 public class ReviewsParser {
 
     /* Data */
+    private HashSet<String> tokenSet = new HashSet<>();
+    private HashSet<String> productIdSet = new HashSet<>();
+
     private ArrayList<Byte> reviewScore = new ArrayList<>();
     private ArrayList<Short> reviewHelpfulnessNumerator = new ArrayList<>();
     private ArrayList<Short> reviewHelpfulnessDenominator = new ArrayList<>();
@@ -21,16 +25,28 @@ public class ReviewsParser {
 
     /* String constants */
     private final String SPLIT_TOKENS_REGEX = "[^A-Za-z0-9]+";
-    private final String TERM_DELIMITER_IN_FILE = "#";
 
-    /* File paths to save the terms lists */
-    private String tokensFilePath;
-    private String productsFilePath;
-
-    ReviewsParser(String tokensFilePath, String productsFilePath) {
-        this.tokensFilePath = tokensFilePath;
-        this.productsFilePath = productsFilePath;
+    /**
+     * Empty the data structures stored in this instance.
+     */
+    void clear() {
+        this.reviewScore.clear();
+        this.reviewHelpfulnessNumerator.clear();
+        this.reviewHelpfulnessDenominator.clear();
+        this.tokensPerReview.clear();
+        numOfReviews = 0;
+        productIds = "";
     }
+
+    /**
+     * Return the tokens HashSet
+     */
+    HashSet<String> getTokenSet() { return tokenSet; }
+
+    /**
+     * Return the productIds HashSet
+     */
+    HashSet<String> getProductIdSet() { return productIdSet; }
 
     /**
      * Return the review scores as an ArrayList of Strings
@@ -73,17 +89,25 @@ public class ReviewsParser {
     int getNumOfReviews() { return numOfReviews;}
 
     /**
+     * Return the number unique tokens
+     */
+    int getNumOfTokens() { return tokenSet.size(); }
+
+    /**
+     * Return the number of unique products
+     */
+    int getNumOfproducts() { return productIdSet.size(); }
+
+    /**
      * Break a text to all it's tokens (alphanumeric).
      * @param text The text to break
-     * @param reviewId The review to which the text belongs
      */
-    private void breakText(String text, int reviewId, BufferedWriter tokenWriter) throws IOException {
+    private void breakText(String text) {
         String[] tokens = text.split(SPLIT_TOKENS_REGEX);
         int tokenCounter = 0;
         for (String token: tokens) {
             if (!token.isEmpty()) {
-                tokenWriter.newLine();
-                tokenWriter.write(token.concat(TERM_DELIMITER_IN_FILE).concat(String.valueOf(numOfReviews)));
+                tokenSet.add(token);
 
                 ++tokenCounter;
             }
@@ -115,67 +139,61 @@ public class ReviewsParser {
      */
     void parseFile(String inputFile) {
         try (BufferedReader reader = new BufferedReader(new FileReader(new File(inputFile)))){
-            try (BufferedWriter productWriter = new BufferedWriter(new FileWriter(new File(productsFilePath)))){
-                try (BufferedWriter tokenWriter = new BufferedWriter(new FileWriter(new File(tokensFilePath)))){
-                    String line = reader.readLine();
-                    String textBuffer = "";
-                    boolean textFlag = false;
-                    while (line != null){
-                        Matcher term;
+            String line = reader.readLine();
+            String textBuffer = "";
+            boolean textFlag = false;
+            while (line != null){
+                Matcher term;
 
-                        if (textFlag && !line.contains("product/productId:")) {
-                            textBuffer = textBuffer.concat(" ").concat(line);
-                            line = reader.readLine();
-                            continue;
-                        }
-
-                        term = Pattern.compile("^product/productId: (.*)").matcher(line);
-                        if (term.find()) {
-                            textFlag = false;
-                            if (!textBuffer.isEmpty()) {
-                                breakText(textBuffer.toLowerCase(), numOfReviews, tokenWriter);
-                            }
-                            ++numOfReviews;
-                            if (numOfReviews == 100001) {
-                                break;
-                            }
-                            productIds = productIds.concat(term.group(1));
-                            productWriter.newLine();
-                            productWriter.write(term.group(1).concat(TERM_DELIMITER_IN_FILE)
-                                                .concat(String.valueOf(numOfReviews)));
-                            line = reader.readLine();
-                            continue;
-                        }
-
-                        term = Pattern.compile("^review/helpfulness: (.*)").matcher(line);
-                        if (term.find()) {
-                            writeReviewHelpfulness(term.group(1));
-                            line = reader.readLine();
-                            continue;
-                        }
-
-                        term = Pattern.compile("^review/score: (.*)").matcher(line);
-                        if (term.find()) {
-                            writeReviewScore(term.group(1));
-                            line = reader.readLine();
-                            continue;
-                        }
-
-                        term = Pattern.compile("^review/text:(.*)").matcher(line);
-                        if (term.find()) {
-                            textFlag = true;
-                            textBuffer = term.group(1);
-                            line = reader.readLine();
-                            continue;
-                        }
-
-                        line = reader.readLine();
-                    }
-
-                    if (!textBuffer.isEmpty()) {
-                        breakText(textBuffer.toLowerCase(), numOfReviews, tokenWriter);
-                    }
+                if (textFlag && !line.contains("product/productId:")) {
+                    textBuffer = textBuffer.concat(" ").concat(line);
+                    line = reader.readLine();
+                    continue;
                 }
+
+                term = Pattern.compile("^product/productId: (.*)").matcher(line);
+                if (term.find()) {
+                    textFlag = false;
+                    if (!textBuffer.isEmpty()) {
+                        breakText(textBuffer.toLowerCase());
+                    }
+                    ++numOfReviews;
+//                            if (numOfReviews == 100001) {  // TODO: delete later
+//                                break;
+//                            }
+                    productIds = productIds.concat(term.group(1));
+                    productIdSet.add(term.group(1));
+                    line = reader.readLine();
+                    continue;
+                }
+
+                term = Pattern.compile("^review/helpfulness: (.*)").matcher(line);
+                if (term.find()) {
+                    writeReviewHelpfulness(term.group(1));
+                    line = reader.readLine();
+                    continue;
+                }
+
+                term = Pattern.compile("^review/score: (.*)").matcher(line);
+                if (term.find()) {
+                    writeReviewScore(term.group(1));
+                    line = reader.readLine();
+                    continue;
+                }
+
+                term = Pattern.compile("^review/text:(.*)").matcher(line);
+                if (term.find()) {
+                    textFlag = true;
+                    textBuffer = term.group(1);
+                    line = reader.readLine();
+                    continue;
+                }
+
+                line = reader.readLine();
+            }
+
+            if (!textBuffer.isEmpty()) {
+                breakText(textBuffer.toLowerCase());
             }
         } catch (IOException e) {
             System.err.println(e.getMessage());

@@ -35,15 +35,15 @@ public class Dictionary implements Serializable {
      * @param isProduct Indicates if the term is productId or token
      * @param dir The directory in which the dictionary is saved
      */
-    Dictionary(int numOfTerms, String sortedTermsFile, Boolean isProduct, String dir) {
+    Dictionary(int numOfTerms, String sortedTermsFile, Boolean isProduct, String dir, ArrayList<String> mapping) {
         this.isProduct = isProduct;
         this.numOfTerms = numOfTerms;
         numOfBlocks = (int)Math.ceil(numOfTerms / (double)K);
         termPtr = new int[numOfBlocks];
 
         path = (isProduct) ?
-                dir + File.separator + SlowIndexWriter.productPostingListFileName :
-                dir + File.separator + SlowIndexWriter.tokenPostingListFileName;
+                dir + File.separator + IndexWriter.productPostingListFileName :
+                dir + File.separator + IndexWriter.tokenPostingListFileName;
 
         frequency = new int[numOfTerms];
         postingPtr = new long[numOfTerms];
@@ -51,7 +51,7 @@ public class Dictionary implements Serializable {
         prefixSize = new byte[numOfTerms];
 
         try (BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(new File(path)))) {
-            build(sortedTermsFile, bos);
+            build(sortedTermsFile, bos, mapping);
         } catch (IOException e) {
             System.err.println(e.getMessage());
             System.exit(1);
@@ -69,7 +69,7 @@ public class Dictionary implements Serializable {
      * Build the concatenated String with all known tokens.
      * Update all data structures with it's info.
      */
-    private void build(String sortedTermsFile, BufferedOutputStream bos) {
+    private void build(String sortedTermsFile, BufferedOutputStream bos, ArrayList<String> mapping) {
         try (BufferedReader reader = new BufferedReader(new FileReader(new File(sortedTermsFile)))){
             String line;
             TreeMap<Integer, Integer> termData = new TreeMap<>();
@@ -81,12 +81,10 @@ public class Dictionary implements Serializable {
                     continue;
                 }
 
-//                webdata.utils.Line lineObject = new Line(line);
-//                String term = lineObject.getTerm();
-                String[] split = line.split("#");
-                String term = split[0];
-                int reviewId = Integer.parseInt(split[1]);
-
+                webdata.utils.Line lineObject = new webdata.utils.Line(line);
+                String term = mapping.get(lineObject.getTerm());
+                int reviewId = lineObject.getReviewId();
+                int frequency = lineObject.getFrequency();
 
                 if (!term.equals(prevTerm)) {
                     if (i > -1) {
@@ -96,7 +94,6 @@ public class Dictionary implements Serializable {
                     }
                     ++i;
 
-                    // Turn a new page
                     if (i % K == 0) {
                         termPtr[(i / K)] = concatStr.length();
                         prefixSize[i] = 0;
@@ -112,7 +109,7 @@ public class Dictionary implements Serializable {
 
                     prevTerm = term;
                 }
-                addTerm(termData, reviewId);
+                termData.put(reviewId, frequency);
             }
 
             if (i > -1) {
@@ -123,27 +120,6 @@ public class Dictionary implements Serializable {
         } catch (IOException e) {
             System.err.println(e.getMessage());
             System.exit(1);
-        }
-    }
-
-    /**
-     * Adds a new term to the given dictionary at the correct review
-     * @param termData The dictionary to add the review and frequency to
-     * @param reviewId The review to which the term belongs
-     */
-    private void addTerm(TreeMap<Integer, Integer> termData, int reviewId) {
-        if (termData.isEmpty()) {
-            termData.put(reviewId, 1);
-        }
-        else {
-            Integer lastReview = termData.lastKey();
-            Integer lastFrequency = termData.get(lastReview);
-            if (lastReview == reviewId) {
-                termData.replace(lastReview, lastFrequency + 1);
-            }
-            else {
-                termData.put(reviewId, 1);
-            }
         }
     }
 

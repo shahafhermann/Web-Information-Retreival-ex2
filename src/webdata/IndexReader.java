@@ -25,17 +25,17 @@ public class IndexReader {
     public IndexReader(String dir) {
         try {
             takeTime("<<<<<<<<<<< *START BUILDING INDEX READER* >>>>>>>>>>");
-            ObjectInputStream tokenDictReader = new ObjectInputStream(new FileInputStream(dir + File.separator + SlowIndexWriter.tokenDictFileName));
+            ObjectInputStream tokenDictReader = new ObjectInputStream(new FileInputStream(dir + File.separator + IndexWriter.tokenDictFileName));
             tokenDict = (Dictionary) tokenDictReader.readObject();
             tokenDictReader.close();
             takeTime("<<<<<<<<<<< *DONE READING TOKEN DICT TO FILE* >>>>>>>>>>");
 
-            ObjectInputStream productDictReader = new ObjectInputStream(new FileInputStream(dir + File.separator + SlowIndexWriter.productDictFileName));
+            ObjectInputStream productDictReader = new ObjectInputStream(new FileInputStream(dir + File.separator + IndexWriter.productDictFileName));
             productDict = (Dictionary) productDictReader.readObject();
             productDictReader.close();
             takeTime("<<<<<<<<<<< *DONE READING PRODUCT DICT TO FILE* >>>>>>>>>>");
 
-            ObjectInputStream reviewDataReader = new ObjectInputStream(new FileInputStream(dir + File.separator + SlowIndexWriter.reviewDataFileName));
+            ObjectInputStream reviewDataReader = new ObjectInputStream(new FileInputStream(dir + File.separator + IndexWriter.reviewDataFileName));
             rd = (ReviewData) reviewDataReader.readObject();
             reviewDataReader.close();
             takeTime("<<<<<<<<<<< *DONE READING REVIEW DATA TO FILE* >>>>>>>>>>");

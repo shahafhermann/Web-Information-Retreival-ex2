@@ -1,14 +1,13 @@
 package webdata;
 
-import webdata.utils.ExternalSort;
-
 import java.io.*;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 
 /**
  *
  */
-public class SlowIndexWriter{
+public class IndexWriter{
 
     static final String tokenDictFileName = "tokenDict";
     static final String productDictFileName = "productDict";
@@ -25,12 +24,15 @@ public class SlowIndexWriter{
     }
 
     /**
-     * Given product review data, creates an on disk index.
+     * Given product review data, creates an on disk index
+     * inputFile is the path to the file containing the review data
+     * dir is the directory in which all index files will be created
+     * if the directory does not exist, it should be created
      * @param inputFile The path to the file containing the review data.
      * @param dir the directory in which all index files will be created if the directory does not exist, it should be
      *            created.
      */
-    public void slowWrite(String inputFile, String dir) {
+    public void write(String inputFile, String dir) {
         File dirFile = new File(dir);
         if (dirFile.exists()) {
             removeFiles(dir);
@@ -44,25 +46,46 @@ public class SlowIndexWriter{
             }
         }
 
-        String tokensFilePath = dir + File.separator + tokensFileName;
-        String productsFilePath = dir + File.separator + productsFileName;
         String sortedTokensFilePath = dir + File.separator + tokensFileName + sortedIndicator;
         String sortedProductsFilePath = dir + File.separator + productsFileName + sortedIndicator;
 
         takeTime("<<<<<<<<<<< *STARTED PARSING* >>>>>>>>>>");
-        ReviewsParser parser = new ReviewsParser(tokensFilePath, productsFilePath);
+        ReviewsParser parser = new ReviewsParser();
         parser.parseFile(inputFile);
         takeTime("<<<<<<<<<<< *PARSE DONE* >>>>>>>>>>");
 
-        Dictionary tokenDict = buildDictionary(tokensFilePath, sortedTokensFilePath, dir, false);
-        takeTime("<<<<<<<<<<< *DONE BUILDING TOKEN DICTIONARY* >>>>>>>>>>");
-        Dictionary productDict = buildDictionary(productsFilePath, sortedProductsFilePath, dir, true);
-        takeTime("<<<<<<<<<<< *DONE BUILDING PRODUCT DICTIONARY* >>>>>>>>>>");
-
         ReviewData rd = new ReviewData(parser.getProductIds(), parser.getReviewHelpfulnessNumerator(),
-                                       parser.getReviewHelpfulnessDenominator(), parser.getReviewScore(),
-                                       parser.getTokensPerReview(), parser.getNumOfReviews());
+                parser.getReviewHelpfulnessDenominator(), parser.getReviewScore(),
+                parser.getTokensPerReview(), parser.getNumOfReviews());
         takeTime("<<<<<<<<<<< *DONE BUILDING REVIEW DATA* >>>>>>>>>>");
+
+        try (ObjectOutputStream reviewDataWriter = new ObjectOutputStream(
+                new FileOutputStream(dir + File.separator + reviewDataFileName))) {
+            reviewDataWriter.writeObject(rd);
+            takeTime("<<<<<<<<<<< *DONE WRITING REVIEW DATA TO FILE* >>>>>>>>>>");
+        } catch(IOException e) {
+            System.err.println(e.getMessage());
+            System.exit(1);
+        }
+        rd.clear();
+        parser.clear();
+
+        String tmpDirName = createTempDir(dir);
+        Sorter sorter = new Sorter(new ArrayList<>(parser.getTokenSet()),
+                                   new ArrayList<>(parser.getProductIdSet()),
+                                   tmpDirName);
+
+        sorter.sort(inputFile, sortedTokensFilePath, sortedProductsFilePath);
+        removeIndex(tmpDirName);
+
+        sorter.clear();
+
+        Dictionary tokenDict = buildDictionary(parser.getNumOfTokens(), sortedTokensFilePath,
+                false, dir, sorter.getTokensArray());
+        takeTime("<<<<<<<<<<< *DONE BUILDING TOKEN DICTIONARY* >>>>>>>>>>");
+        Dictionary productDict = buildDictionary(parser.getNumOfproducts(), sortedProductsFilePath,
+                true, dir, sorter.getProductIdsArray());
+        takeTime("<<<<<<<<<<< *DONE BUILDING PRODUCT DICTIONARY* >>>>>>>>>>");
 
         try {
             /* Write the new files */
@@ -75,15 +98,25 @@ public class SlowIndexWriter{
             productDictWriter.writeObject(productDict);
             productDictWriter.close();
             takeTime("<<<<<<<<<<< *DONE WRITING PRODUCT DICT TO FILE* >>>>>>>>>>");
-
-            ObjectOutputStream reviewDataWriter = new ObjectOutputStream(new FileOutputStream(dir + File.separator + reviewDataFileName));
-            reviewDataWriter.writeObject(rd);
-            reviewDataWriter.close();
-            takeTime("<<<<<<<<<<< *DONE WRITING REVIEW DATA TO FILE* >>>>>>>>>>");
         } catch(IOException e) {
             System.err.println(e.getMessage());
             System.exit(1);
         }
+    }
+
+    private static String createTempDir(String dir) {
+        String tmpDirName = dir + File.separator + "tmp";
+        File tmpDir = new File(tmpDirName);
+        if (!tmpDir.exists()) {
+            try{
+                tmpDir.mkdir();
+            }
+            catch(SecurityException e){
+                System.err.println(e.getMessage());
+                System.exit(1);
+            }
+        }
+        return tmpDirName;
     }
 
     /**
@@ -128,63 +161,14 @@ public class SlowIndexWriter{
         }
     }
 
-    private Dictionary buildDictionary(String in, String out, String dir, Boolean isProduct) {
-        String tmpDirName = dir + File.separator + "tmp";
-        File tmpDir = new File(tmpDirName);
-        if (!tmpDir.exists()) {
-            try{
-                tmpDir.mkdir();
-            }
-            catch(SecurityException e){
-                System.err.println(e.getMessage());
-                System.exit(1);
-            }
-        }
-
-        /* Sort */
-        takeTime("<<<<<<<<<<< *STARTED SORTING* >>>>>>>>>>");
-        ExternalSort.sort(in, out, tmpDirName);
-        takeTime("<<<<<<<<<<< *FINISHED SORTING* >>>>>>>>>>");
-        deleteFile(dir, in);
-        removeIndex(tmpDirName);
-
-        int numOfTerms = countTerms(out);
-
+    private Dictionary buildDictionary(int numOfTerms, String out, Boolean isProduct, String dir,
+                                       ArrayList<String> mapping) {
         takeTime("<<<<<<<<<<< *STARTED BUILDING DICT* >>>>>>>>>>");
-        Dictionary dict = new Dictionary(numOfTerms, out, isProduct, dir);
+        Dictionary dict = new Dictionary(numOfTerms, out, isProduct, dir, mapping);
         takeTime("<<<<<<<<<<< *DONE BUILDING DICT* >>>>>>>>>>");
-
         /* Delete sorted */
-        deleteFile(dir, out);
+//        deleteFile(dir, out);
 
         return dict;
-    }
-
-    private int countTerms(String fileName) {
-        try (BufferedReader reader = new BufferedReader(new FileReader(new File(fileName)))){
-            String line;
-            String prevTerm = "";
-            int i = 0;
-
-            while ((line = reader.readLine()) != null) {
-                if (line.isEmpty()) {
-                    continue;
-                }
-
-                String term = line.split("#")[0];
-
-                if (!term.equals(prevTerm)) {
-                    ++i;
-                    prevTerm = term;
-                }
-            }
-
-            return i;
-
-        } catch (IOException e) {
-            System.err.println(e.getMessage());
-            System.exit(1);
-        }
-        return -1;  // Will never reach
     }
 }

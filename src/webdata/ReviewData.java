@@ -57,6 +57,19 @@ class ReviewData implements Serializable {
     }
 
     /**
+     * Empty the data structures stored in this instance.
+     */
+    void clear() {
+        this.productId = "";
+        this.productIdLen = 0;
+        this.reviewHelpfulnessNumerator = null;
+        this.reviewHelpfulnessDenominator = null;
+        this.reviewScore = null;
+        this.tokensPerReview = null;
+        this.numOfReviews = 0;
+    }
+
+    /**
      * Return the score for the requested review i
      */
     byte getScore(int i) { return reviewScore[i]; }
