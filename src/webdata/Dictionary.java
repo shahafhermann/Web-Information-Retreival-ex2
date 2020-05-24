@@ -1,6 +1,6 @@
 package webdata;
 
-import webdata.utils.Line;
+import webdata.utils.Encoder;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -22,8 +22,10 @@ public class Dictionary implements Serializable {
 
     private int[] frequency;
     private long[] postingPtr;
-    private byte[] length;
+    private short[] length;
     private byte[] prefixSize;
+
+    private long filePointer = 0;
 
     /**
      * Constructor
@@ -44,10 +46,15 @@ public class Dictionary implements Serializable {
 
         frequency = new int[numOfTerms];
         postingPtr = new long[numOfTerms];
-        length = new byte[numOfTerms];
+        length = new short[numOfTerms];
         prefixSize = new byte[numOfTerms];
 
-        build(sortedTermsFile);
+        try (BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(new File(path)))) {
+            build(sortedTermsFile, bos);
+        } catch (IOException e) {
+            System.err.println(e.getMessage());
+            System.exit(1);
+        }
     }
 
     /**
@@ -61,14 +68,14 @@ public class Dictionary implements Serializable {
      * Build the concatenated String with all known tokens.
      * Update all data structures with it's info.
      */
-    private void build(String sortedTermsFile) {
+    private void build(String sortedTermsFile, BufferedOutputStream bos) {
         try (BufferedReader reader = new BufferedReader(new FileReader(new File(sortedTermsFile)))){
             String line;
             TreeMap<Integer, Integer> termData = new TreeMap<>();
             String prevTerm = "";
             int i = -1;
 
-            while ((line = reader.readLine()) != null) {  // TODO: Might be super bugged
+            while ((line = reader.readLine()) != null) {
                 if (line.isEmpty()) {
                     continue;
                 }
@@ -83,7 +90,7 @@ public class Dictionary implements Serializable {
                 if (!term.equals(prevTerm)) {
                     if (i > -1) {
                         buildFrequency(termData, i);
-                        buildPostingList(termData, i);
+                        buildPostingList(termData, i, bos);
                         termData.clear();
                     }
                     ++i;
@@ -100,7 +107,7 @@ public class Dictionary implements Serializable {
                         concatStr = concatStr.concat(term.substring(psize));
                     }
 
-                    length[i] = (byte) term.length();
+                    length[i] = (short) term.length();
 
                     prevTerm = term;
                 }
@@ -109,7 +116,7 @@ public class Dictionary implements Serializable {
 
             if (i > -1) {
                 buildFrequency(termData, i);
-                buildPostingList(termData, i);
+                buildPostingList(termData, i, bos);
                 termData.clear();
             }
         } catch (IOException e) {
@@ -154,14 +161,15 @@ public class Dictionary implements Serializable {
      * @param termData The data for the currently processed term
      * @param i Index to add at
      */
-    private void buildPostingList(TreeMap<Integer, Integer> termData, int i) {
+    private void buildPostingList(TreeMap<Integer, Integer> termData, int i, BufferedOutputStream bos)
+            throws IOException{
         ArrayList<Integer> reviews = new ArrayList<>(termData.keySet());
         ArrayList<Byte> encodedReviews = Encoder.encode(reviews, true);
-        postingPtr[i] =  write(encodedReviews);
+        postingPtr[i] =  write(encodedReviews, bos);
         if (!isProduct) {
             ArrayList<Integer> frequencies = new ArrayList<>(termData.values());
             ArrayList<Byte> encodedFrequencies = Encoder.encode(frequencies, false);
-            write(encodedFrequencies);
+            write(encodedFrequencies, bos);
         }
     }
 
@@ -170,19 +178,13 @@ public class Dictionary implements Serializable {
      * @param arr Array to write
      * @return Position that written started
      */
-    public long write(ArrayList<Byte> arr){
-        try (RandomAccessFile raf = new RandomAccessFile(path, "rw")){
-            raf.seek(raf.length());
-            long pos = raf.getFilePointer();
-            for (byte b: arr) {
-                raf.writeByte(b);
-            }
+    public long write(ArrayList<Byte> arr, BufferedOutputStream bos) throws IOException{
+            long pos  = filePointer;
+            byte[] arrAsByte = new byte[arr.size()];
+            Encoder.toPrimitiveArray(arr, arrAsByte);
+            bos.write(arrAsByte);
+            filePointer += arr.size();  // TODO: pay attention
             return pos;
-        } catch (IOException e) {
-            System.err.println(e.getMessage());
-            System.exit(1);
-        }
-        return -1;  // Will never happen
     }
 
     /**

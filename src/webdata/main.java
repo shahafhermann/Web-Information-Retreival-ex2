@@ -6,7 +6,7 @@ import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class main {
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
         String dir = "/Users/shahaf/Documents/UNI/אחזור מידע באינטרנט/ex2/indexFiles";
 //        String file = "/Users/shahaf/Documents/UNI/אחזור מידע באינטרנט/datasets/Movies_&_TV.txt";
 //        String file = "/Users/shahaf/Documents/UNI/אחזור מידע באינטרנט/ex2/1000.txt";
@@ -72,6 +72,8 @@ public class main {
             Enumeration<Integer> e = ir.getProductReviews(s);
         }
     }
+
+
 }
 
 //import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;

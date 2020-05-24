@@ -1,5 +1,7 @@
 package webdata;
 
+import webdata.utils.Encoder;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 
@@ -44,37 +46,15 @@ class ReviewData implements Serializable {
 
         this.reviewHelpfulnessNumerator = new short[numOfReviews];
         this.reviewHelpfulnessDenominator = new short[numOfReviews];
-        toPrimitiveArray(reviewHelpfulnessN, this.reviewHelpfulnessNumerator);
-        toPrimitiveArray(reviewHelpfulnessD, this.reviewHelpfulnessDenominator);
+        Encoder.toPrimitiveArray(reviewHelpfulnessN, this.reviewHelpfulnessNumerator);
+        Encoder.toPrimitiveArray(reviewHelpfulnessD, this.reviewHelpfulnessDenominator);
 
         this.reviewScore = new byte[numOfReviews];
-        toPrimitiveArray(reviewScore, this.reviewScore);
+        Encoder.toPrimitiveArray(reviewScore, this.reviewScore);
 
         this.tokensPerReview = new short[numOfReviews];
-        toPrimitiveArray(tokensPerReview, this.tokensPerReview);
+        Encoder.toPrimitiveArray(tokensPerReview, this.tokensPerReview);
         this.numOfReviews = numOfReviews;
-    }
-
-    /**
-     * Convert an ArrayList of Short to short array
-     * @param list ArrayList of Short
-     * @param arr Array to populate
-     */
-    private void toPrimitiveArray(ArrayList<Short> list, short[] arr) {
-        for (int i = 0; i < list.size(); ++i) {
-            arr[i] = list.get(i);
-        }
-    }
-
-    /**
-     * Convert an ArrayList of Byte to byte array
-     * @param list ArrayList of Byte
-     * @param arr Array to populate
-     */
-    private void toPrimitiveArray(ArrayList<Byte> list, byte[] arr) {
-        for (int i = 0; i < list.size(); ++i) {
-            arr[i] = list.get(i);
-        }
     }
 
     /**

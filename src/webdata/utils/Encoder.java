@@ -1,4 +1,4 @@
-package webdata;
+package webdata.utils;
 
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
@@ -8,7 +8,7 @@ import java.util.Arrays;
 /**
  * A static class to encode and decode
  */
-final class Encoder {
+public final class Encoder {
 
     /**
      * Empty and private constructor to make this class static.
@@ -22,7 +22,7 @@ final class Encoder {
      * @param codeAsGap Indicate whether there's a gap difference
      * @return The encoded Byte ArrayList.
      */
-    static ArrayList<Byte> encode(ArrayList<Integer> values, boolean codeAsGap) {
+    public static ArrayList<Byte> encode(ArrayList<Integer> values, boolean codeAsGap) {
         int size = values.size();
         ArrayList<Byte> encoded = new ArrayList<>(padByte(intToByte(size)));
         int counter = 1;
@@ -57,7 +57,7 @@ final class Encoder {
      * @param codeAsGap Indicate whether there's a gap difference
      * @return The corresponding int array.
      */
-     static Integer[] decode(byte[] values, boolean codeAsGap, long[] ptr) {
+     public static Integer[] decode(byte[] values, boolean codeAsGap, long[] ptr) {
         int size = byteArrayToInt(Arrays.copyOfRange(values, 0, 4));
         int numOfGroupsOfLastControlByte = size % 4;
         Integer[] decoded = new Integer[size];
@@ -156,5 +156,27 @@ final class Encoder {
     private static int byteArrayToInt(byte[] intBytes){
         ByteBuffer byteBuffer = ByteBuffer.wrap(intBytes);
         return byteBuffer.getInt();
+    }
+
+    /**
+     * Convert an ArrayList of Short to short array
+     * @param list ArrayList of Short
+     * @param arr Array to populate
+     */
+    public static void toPrimitiveArray(ArrayList<Short> list, short[] arr) {
+        for (int i = 0; i < list.size(); ++i) {
+            arr[i] = list.get(i);
+        }
+    }
+
+    /**
+     * Convert an ArrayList of Byte to byte array
+     * @param list ArrayList of Byte
+     * @param arr Array to populate
+     */
+    public static void toPrimitiveArray(ArrayList<Byte> list, byte[] arr) {
+        for (int i = 0; i < list.size(); ++i) {
+            arr[i] = list.get(i);
+        }
     }
 }

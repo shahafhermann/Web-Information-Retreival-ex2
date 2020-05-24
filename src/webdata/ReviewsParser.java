@@ -136,9 +136,9 @@ public class ReviewsParser {
                                 breakText(textBuffer.toLowerCase(), numOfReviews, tokenWriter);
                             }
                             ++numOfReviews;
-//                            if (numOfReviews == 100001) {
-//                                break;
-//                            }
+                            if (numOfReviews == 100001) {
+                                break;
+                            }
                             productIds = productIds.concat(term.group(1));
                             productWriter.newLine();
                             productWriter.write(term.group(1).concat(TERM_DELIMITER_IN_FILE)
