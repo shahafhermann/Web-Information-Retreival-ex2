@@ -1,7 +1,5 @@
 package webdata.utils;
 
-import java.math.BigInteger;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -24,13 +22,13 @@ public final class Encoder {
      */
     public static ArrayList<Byte> encode(ArrayList<Integer> values, boolean codeAsGap) {
         int size = values.size();
-        ArrayList<Byte> encoded = new ArrayList<>(padByte(intToByte(size)));
+        ArrayList<Byte> encoded = new ArrayList<>(Utils.padByte(Utils.intToByte(size)));
         int counter = 1;
         ArrayList<Byte> tempGroup = new ArrayList<>();
         byte controlByte = 0;
         int prevVal = 0;
         for (int val: values) {
-            ArrayList<Byte> valAsByte = intToByte(val - prevVal);
+            ArrayList<Byte> valAsByte = Utils.intToByte(val - prevVal);
             int valSize = valAsByte.size();
             controlByte = (byte)((controlByte << 2) + (valSize - 1));
             tempGroup.addAll(valAsByte);
@@ -58,7 +56,7 @@ public final class Encoder {
      * @return The corresponding int array.
      */
      public static Integer[] decode(byte[] values, boolean codeAsGap, long[] ptr) {
-        int size = byteArrayToInt(Arrays.copyOfRange(values, 0, 4));
+        int size = Utils.byteArrayToInt(Arrays.copyOfRange(values, 0, 4));
         int numOfGroupsOfLastControlByte = size % 4;
         Integer[] decoded = new Integer[size];
         int groupCounter = 0;
@@ -79,8 +77,8 @@ public final class Encoder {
                 ++groupIndex;
             }
             int groupSize = groupSizes[curGroupPerControl];
-            byte[] sliced = padByte(Arrays.copyOfRange(values, groupIndex, groupIndex + groupSize));
-            decoded[groupCounter] = byteArrayToInt(sliced) + prevVal;
+            byte[] sliced = Utils.padByte(Arrays.copyOfRange(values, groupIndex, groupIndex + groupSize));
+            decoded[groupCounter] = Utils.byteArrayToInt(sliced) + prevVal;
             prevVal = (codeAsGap) ? decoded[groupCounter] : 0;
             groupIndex += groupSize;
             ++groupCounter;
@@ -102,81 +100,5 @@ public final class Encoder {
             b >>= 2;
         }
         return res;
-    }
-
-    /**
-     * Returns a Byte ArrayList of exactly 4 bytes.
-     * @param arr Byte ArrayList to pad
-     * @return Byte ArrayList of size 4
-     */
-    private static ArrayList<Byte> padByte(ArrayList<Byte> arr) {
-        int pad = 4 - arr.size();
-        int i = 0;
-        Byte zero = 0;
-        while (i < pad) {
-            arr.add(0, zero);
-            ++i;
-        }
-        return arr;
-    }
-
-    /**
-     * Returns a byte array of exactly 4 bytes.
-     * @param arr byte array to pad
-     * @return byte array of size 4
-     */
-    private static byte[] padByte(byte[] arr) {
-        byte[] newArr = new byte[4];
-        int pad = 4 - arr.length;
-        for (int i = 0; i < arr.length; ++i) {
-            newArr[i + pad] = arr[i];
-        }
-        return newArr;
-    }
-
-    /**
-     * Convert the given Integer to it's byte representation
-     * @param i Integer to convert
-     * @return Byte ArrayList of the Integer's representation
-     */
-    private static ArrayList<Byte> intToByte(final Integer i) {
-        BigInteger bi = BigInteger.valueOf(i);
-        ArrayList<Byte> bigByte = new ArrayList<>();
-        for (byte b: bi.toByteArray()) {
-            bigByte.add(b);
-        }
-        return bigByte;
-    }
-
-    /**
-     * Convert a byte array representing an integer to it's corresponding int
-     * @param intBytes The byte array
-     * @return The corresponding int
-     */
-    private static int byteArrayToInt(byte[] intBytes){
-        ByteBuffer byteBuffer = ByteBuffer.wrap(intBytes);
-        return byteBuffer.getInt();
-    }
-
-    /**
-     * Convert an ArrayList of Short to short array
-     * @param list ArrayList of Short
-     * @param arr Array to populate
-     */
-    public static void toPrimitiveArray(ArrayList<Short> list, short[] arr) {
-        for (int i = 0; i < list.size(); ++i) {
-            arr[i] = list.get(i);
-        }
-    }
-
-    /**
-     * Convert an ArrayList of Byte to byte array
-     * @param list ArrayList of Byte
-     * @param arr Array to populate
-     */
-    public static void toPrimitiveArray(ArrayList<Byte> list, byte[] arr) {
-        for (int i = 0; i < list.size(); ++i) {
-            arr[i] = list.get(i);
-        }
     }
 }

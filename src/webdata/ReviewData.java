@@ -1,7 +1,6 @@
 package webdata;
 
-import webdata.utils.Encoder;
-
+import webdata.utils.Utils;
 import java.io.Serializable;
 import java.util.ArrayList;
 
@@ -46,14 +45,14 @@ class ReviewData implements Serializable {
 
         this.reviewHelpfulnessNumerator = new short[numOfReviews];
         this.reviewHelpfulnessDenominator = new short[numOfReviews];
-        Encoder.toPrimitiveArray(reviewHelpfulnessN, this.reviewHelpfulnessNumerator);
-        Encoder.toPrimitiveArray(reviewHelpfulnessD, this.reviewHelpfulnessDenominator);
+        Utils.toPrimitiveArray(reviewHelpfulnessN, this.reviewHelpfulnessNumerator);
+        Utils.toPrimitiveArray(reviewHelpfulnessD, this.reviewHelpfulnessDenominator);
 
         this.reviewScore = new byte[numOfReviews];
-        Encoder.toPrimitiveArray(reviewScore, this.reviewScore);
+        Utils.toPrimitiveArray(reviewScore, this.reviewScore);
 
         this.tokensPerReview = new short[numOfReviews];
-        Encoder.toPrimitiveArray(tokensPerReview, this.tokensPerReview);
+        Utils.toPrimitiveArray(tokensPerReview, this.tokensPerReview);
         this.numOfReviews = numOfReviews;
     }
 

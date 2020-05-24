@@ -166,7 +166,7 @@ public class SlowIndexWriter{
             String prevTerm = "";
             int i = 0;
 
-            while ((line = reader.readLine()) != null) {  // TODO: Might be super bugged
+            while ((line = reader.readLine()) != null) {
                 if (line.isEmpty()) {
                     continue;
                 }

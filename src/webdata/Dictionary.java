@@ -1,6 +1,7 @@
 package webdata;
 
 import webdata.utils.Encoder;
+import webdata.utils.Utils;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -181,9 +182,9 @@ public class Dictionary implements Serializable {
     public long write(ArrayList<Byte> arr, BufferedOutputStream bos) throws IOException{
             long pos  = filePointer;
             byte[] arrAsByte = new byte[arr.size()];
-            Encoder.toPrimitiveArray(arr, arrAsByte);
+            Utils.toPrimitiveArray(arr, arrAsByte);
             bos.write(arrAsByte);
-            filePointer += arr.size();  // TODO: pay attention
+            filePointer += arr.size();
             return pos;
     }
 
