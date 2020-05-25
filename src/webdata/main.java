@@ -6,8 +6,8 @@ import java.util.*;
 public class main {
     public static void main(String[] args) {
         String dir = "/Users/shahaf/Documents/UNI/אחזור מידע באינטרנט/ex2/indexFiles";
-        String file = "/Users/shahaf/Documents/UNI/אחזור מידע באינטרנט/datasets/Movies_&_TV.txt";
-//        String file = "/Users/shahaf/Documents/UNI/אחזור מידע באינטרנט/ex2/1000.txt";
+//        String file = "/Users/shahaf/Documents/UNI/אחזור מידע באינטרנט/datasets/Movies_&_TV.txt";
+        String file = "/Users/shahaf/Documents/UNI/אחזור מידע באינטרנט/ex2/1000.txt";
 //        String file = "/Users/shahaf/Documents/UNI/אחזור מידע באינטרנט/datasets/Musical_Instruments.txt";
 
 
@@ -28,14 +28,13 @@ public class main {
     private static void test1(IndexReader ir) {
         System.err.println("\n\n--------- Started TEST ---------\n\n");
         int[] vals = {-1, 0, 1000, 99, 10001, 2000000, 8000000};
-        System.out.println("--- Checking reviewId functions ---");
         for (int val: vals) {
-            System.out.println("Value: " + val);
-            System.out.println("Product ID: " + ir.getProductId(val));
-            System.out.println("Review Score: " + ir.getReviewScore(val));
-            System.out.println("Review Helpfulness Numerator: " + ir.getReviewHelpfulnessNumerator(val));
-            System.out.println("Review Helpfulness Denominator: " + ir.getReviewHelpfulnessDenominator(val));
-            System.out.println("Review Length: " + ir.getReviewLength(val));
+//            System.out.println("Value: " + val);
+            ir.getProductId(val);
+            ir.getReviewScore(val);
+            ir.getReviewHelpfulnessNumerator(val);
+            ir.getReviewHelpfulnessDenominator(val);
+            ir.getReviewLength(val);
         }
 
         /* ****/
@@ -44,7 +43,7 @@ public class main {
                 "bye", "feeling", "manage", "story", "fixed", "rude", "modern", "ticket", "beginner",
                 "summer", "observation", "respect", "dynamic", "delicious", "quiet", "bridge", "strong",
                 "addicted", "reflective", "unlock", "silent", "attraction", "way", "assorted", "spoon",
-                "scratch", "baseball", "lying", "unwieldy", "mug", "afraid", "serious", "lumber", "drum",
+                "scratch", "baseball", "lying", "unwieldy", "mug", "to", "serious", "lumber", "drum",
                 "living", "unable", "health", "whip", "tempt", "testy", "window", "part", "return", "value",
                 "spray", "adhesive", "grip", "vague", "roasted", "smelly", "fold", "purple", "cloudy",
                 "prevent", "mysterious", "replace", "bucket", "moor", "certain", "pleasant", "introduce",
@@ -52,7 +51,6 @@ public class main {
                 "true", "exciting", "desk", "present", "try", "fabulous", "tiger", "tiny", "cry",
                 "inexpensive", "straw", "ugly", "circle", "holiday"};
         System.out.println();
-        System.out.println("--- Checking token functions ---");
         takeTime("<<<<<<<<<<< *STARTED getTokenFrequency for 100 values* >>>>>>>>>>");
         for (String s: svals) {
             int i = ir.getTokenFrequency(s);
@@ -64,33 +62,19 @@ public class main {
         }
         takeTime("<<<<<<<<<<< *DONE getReviewsWithTokens for 100 values* >>>>>>>>>>");
 
-        String[] svals2 = {"health", "popcorn", "zip", "Popcorn", "zohar", "apple"};
+        String[] svals2 = {"to", "health", "popcorn", "zip", "Popcorn", "apple"};
         for (String s: svals2) {
-            System.out.println("Value: " + s);
-            System.out.println("Token Frequency: " + ir.getTokenFrequency(s));
-            System.out.println("Token Collection Frequency: " + ir.getTokenCollectionFrequency(s));
-            System.out.println("Tuple Enumeration:");
+            ir.getTokenFrequency(s);
+            ir.getTokenCollectionFrequency(s);
             Enumeration<Integer> e = ir.getReviewsWithToken(s);
-            while (e.hasMoreElements()) {
-                System.out.println(e.nextElement());
-            }
         }
         /* ****/
 
-        System.out.println();
-        System.out.println("--- Checking Getters ---");
-        System.out.println("Number of Reviews: " + ir.getNumberOfReviews());
-        System.out.println("Total Tokens (with repetition): " + ir.getTokenSizeOfReviews());
-
-        System.out.println();
-        System.out.println("--- Checking productId Enumeration (not tuples) ---");
+        ir.getNumberOfReviews();
+        ir.getTokenSizeOfReviews();
         String[] pvals = {"B001E4KFG0", "B0019CW0HE", "B0019CW0HF"};
         for (String s: pvals) {
-            System.out.println("Value: " + s);
             Enumeration<Integer> e = ir.getProductReviews(s);
-            while (e.hasMoreElements()) {
-                System.out.println(e.nextElement());
-            }
         }
     }
 

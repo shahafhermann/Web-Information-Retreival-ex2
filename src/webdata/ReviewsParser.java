@@ -7,6 +7,8 @@ import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static java.lang.Math.pow;
+
 /**
  * A parser for a file of reviews.
  */
@@ -138,7 +140,7 @@ public class ReviewsParser {
      * @param inputFile The file to parse
      */
     void parseFile(String inputFile) {
-        try (BufferedReader reader = new BufferedReader(new FileReader(new File(inputFile)))){
+        try (BufferedReader reader = new BufferedReader(new FileReader(new File(inputFile)), (int)Math.pow(2, 20))){
             String line = reader.readLine();
             String textBuffer = "";
             boolean textFlag = false;

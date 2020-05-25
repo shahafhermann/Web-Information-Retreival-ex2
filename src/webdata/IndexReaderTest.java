@@ -133,8 +133,8 @@ class IndexReaderTest {
 		@Test
 		@DisplayName("Testing getTokenFrequency - valid inputs")
 		void getTokenFrequency() {
-			String[] inputs = {"to", "Greatest", "Buttermilk", "Lord"};
-			int[] expectedOutputs = {1, 2, 3, 2};
+			String[] inputs = {"Greatest", "Buttermilk", "Lord"};
+			int[] expectedOutputs = {2, 3, 2};
 			testTokenFrequency(inputs, expectedOutputs, indexReader::getTokenFrequency);
 		}
 
@@ -246,11 +246,11 @@ class IndexReaderTest {
 	}
 
 
-//	/** comment for not checking removeIndex method of slowWriter!. */
-//	@AfterAll
-//	static void removeDir(){
-//		indexWriter.removeIndex(indexDir);
-//		File directory = new File(indexDir);
-//		assertFalse(directory.exists());
-//	}
+	/** comment for not checking removeIndex method of slowWriter!. */
+	@AfterAll
+	static void removeDir(){
+		indexWriter.removeIndex(indexDir);
+		File directory = new File(indexDir);
+		assertFalse(directory.exists());
+	}
 }

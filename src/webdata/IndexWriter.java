@@ -49,16 +49,18 @@ public class IndexWriter{
         String sortedTokensFilePath = dir + File.separator + tokensFileName + sortedIndicator;
         String sortedProductsFilePath = dir + File.separator + productsFileName + sortedIndicator;
 
-        takeTime("<<<<<<<<<<< *STARTED PARSING* >>>>>>>>>>");
+        takeTime("<<<<<<<<<<< *STARTED FIRST PASS* >>>>>>>>>>");
         ReviewsParser parser = new ReviewsParser();
         parser.parseFile(inputFile);
-        takeTime("<<<<<<<<<<< *PARSE DONE* >>>>>>>>>>");
+        takeTime("<<<<<<<<<<< *DONE FIRST PASS* >>>>>>>>>>");
 
+        takeTime("<<<<<<<<<<< *STARTED BUILDING REVIEW DATA* >>>>>>>>>>");
         ReviewData rd = new ReviewData(parser.getProductIds(), parser.getReviewHelpfulnessNumerator(),
                 parser.getReviewHelpfulnessDenominator(), parser.getReviewScore(),
                 parser.getTokensPerReview(), parser.getNumOfReviews());
         takeTime("<<<<<<<<<<< *DONE BUILDING REVIEW DATA* >>>>>>>>>>");
 
+        takeTime("<<<<<<<<<<< *START WRITING REVIEW DATA TO FILE* >>>>>>>>>>");
         try (ObjectOutputStream reviewDataWriter = new ObjectOutputStream(
                 new FileOutputStream(dir + File.separator + reviewDataFileName))) {
             reviewDataWriter.writeObject(rd);
@@ -71,29 +73,33 @@ public class IndexWriter{
         parser.clear();
 
         String tmpDirName = createTempDir(dir);
+        takeTime("<<<<<<<<<<< *START SECOND PASS + SORT* >>>>>>>>>>");
         Sorter sorter = new Sorter(new ArrayList<>(parser.getTokenSet()),
                                    new ArrayList<>(parser.getProductIdSet()),
                                    tmpDirName);
-
         sorter.sort(inputFile, sortedTokensFilePath, sortedProductsFilePath);
         removeIndex(tmpDirName);
-
         sorter.clear();
+        takeTime("<<<<<<<<<<< *DONE SECOND PASS + SORT* >>>>>>>>>>");
 
+        takeTime("<<<<<<<<<<< *START BUILDING TOKEN DICTIONARY* >>>>>>>>>>");
         Dictionary tokenDict = buildDictionary(parser.getNumOfTokens(), sortedTokensFilePath,
                 false, dir, sorter.getTokensArray());
         takeTime("<<<<<<<<<<< *DONE BUILDING TOKEN DICTIONARY* >>>>>>>>>>");
+        takeTime("<<<<<<<<<<< *START BUILDING PRODUCT DICTIONARY* >>>>>>>>>>");
         Dictionary productDict = buildDictionary(parser.getNumOfproducts(), sortedProductsFilePath,
                 true, dir, sorter.getProductIdsArray());
         takeTime("<<<<<<<<<<< *DONE BUILDING PRODUCT DICTIONARY* >>>>>>>>>>");
 
         try {
             /* Write the new files */
+            takeTime("<<<<<<<<<<< *START WRITING TOKEN DICT TO FILE* >>>>>>>>>>");
             ObjectOutputStream tokenDictWriter = new ObjectOutputStream(new FileOutputStream(dir + File.separator + tokenDictFileName));
             tokenDictWriter.writeObject(tokenDict);
             tokenDictWriter.close();
             takeTime("<<<<<<<<<<< *DONE WRITING TOKEN DICT TO FILE* >>>>>>>>>>");
 
+            takeTime("<<<<<<<<<<< *START WRITING PRODUCT DICT TO FILE* >>>>>>>>>>");
             ObjectOutputStream productDictWriter = new ObjectOutputStream(new FileOutputStream(dir + File.separator + productDictFileName));
             productDictWriter.writeObject(productDict);
             productDictWriter.close();
@@ -163,12 +169,9 @@ public class IndexWriter{
 
     private Dictionary buildDictionary(int numOfTerms, String out, Boolean isProduct, String dir,
                                        ArrayList<String> mapping) {
-        takeTime("<<<<<<<<<<< *STARTED BUILDING DICT* >>>>>>>>>>");
         Dictionary dict = new Dictionary(numOfTerms, out, isProduct, dir, mapping);
-        takeTime("<<<<<<<<<<< *DONE BUILDING DICT* >>>>>>>>>>");
         /* Delete sorted */
-//        deleteFile(dir, out);
-
+        deleteFile(dir, out);
         return dict;
     }
 }
