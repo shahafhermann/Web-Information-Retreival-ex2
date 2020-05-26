@@ -81,4 +81,25 @@ public class Line implements Comparable<Line> {
         int code = this.toString().hashCode();
         return code;
     }
+
+    @Override
+    public boolean equals(Object o) {
+
+        // If the object is compared with itself then return true
+        if (o == this) {
+            return true;
+        }
+
+        /* Check if o is an instance of Line or not
+          "null instanceof [type]" also returns false */
+        if (!(o instanceof Line)) {
+            return false;
+        }
+
+        // typecast o to Line so that we can compare data members
+        Line l = (Line) o;
+
+        // Compare the data members and return accordingly
+        return compareTo(l) == 0;
+    }
 }

@@ -3,11 +3,6 @@ package webdata;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.TreeMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import static java.lang.Math.pow;
 
 /**
  * A parser for a file of reviews.
@@ -23,7 +18,7 @@ public class ReviewsParser {
     private ArrayList<Short> reviewHelpfulnessDenominator = new ArrayList<>();
     private ArrayList<Short> tokensPerReview = new ArrayList<>();
     private int numOfReviews = 0;
-    private String productIds = "";
+    private StringBuilder productIds = new StringBuilder();
 
     /* String constants */
     private final String SPLIT_TOKENS_REGEX = "[^A-Za-z0-9]+";
@@ -32,12 +27,12 @@ public class ReviewsParser {
      * Empty the data structures stored in this instance.
      */
     void clear() {
-        this.reviewScore.clear();
-        this.reviewHelpfulnessNumerator.clear();
-        this.reviewHelpfulnessDenominator.clear();
-        this.tokensPerReview.clear();
+        this.reviewScore = new ArrayList<>();
+        this.reviewHelpfulnessNumerator = new ArrayList<>();
+        this.reviewHelpfulnessDenominator = new ArrayList<>();
+        this.tokensPerReview = new ArrayList<>();
         numOfReviews = 0;
-        productIds = "";
+        productIds = new StringBuilder();
     }
 
     /**
@@ -75,7 +70,7 @@ public class ReviewsParser {
      * Return the review product IDs as an ArrayList of Strings
      */
     String getProductIds() {
-        return productIds;
+        return productIds.toString();
     }
 
     /**
@@ -144,49 +139,49 @@ public class ReviewsParser {
             String line = reader.readLine();
             String textBuffer = "";
             boolean textFlag = false;
+            String term;
             while (line != null){
-                Matcher term;
 
-                if (textFlag && !line.contains("product/productId:")) {
+                if (textFlag && !line.startsWith("product/productId: ")) {
                     textBuffer = textBuffer.concat(" ").concat(line);
                     line = reader.readLine();
                     continue;
                 }
 
-                term = Pattern.compile("^product/productId: (.*)").matcher(line);
-                if (term.find()) {
+                if (line.startsWith("product/productId: ")) {
                     textFlag = false;
                     if (!textBuffer.isEmpty()) {
                         breakText(textBuffer.toLowerCase());
                     }
                     ++numOfReviews;
-//                            if (numOfReviews == 100001) {  // TODO: delete later
-//                                break;
-//                            }
-                    productIds = productIds.concat(term.group(1));
-                    productIdSet.add(term.group(1));
+//                    if (numOfReviews == 100001) {  // TODO: delete later
+//                        break;
+//                    }
+//                    if (numOfReviews % 10001  == 0) {
+//                        System.err.println("*************" + numOfReviews + "*************");
+//                    }
+                    term = line.substring(19);
+                    productIds.append(term);
+                    productIdSet.add(term);
                     line = reader.readLine();
                     continue;
                 }
 
-                term = Pattern.compile("^review/helpfulness: (.*)").matcher(line);
-                if (term.find()) {
-                    writeReviewHelpfulness(term.group(1));
+                if (line.startsWith("review/helpfulness: ")) {
+                    writeReviewHelpfulness(line.substring(20));
                     line = reader.readLine();
                     continue;
                 }
 
-                term = Pattern.compile("^review/score: (.*)").matcher(line);
-                if (term.find()) {
-                    writeReviewScore(term.group(1));
+                if (line.startsWith("review/score: ")) {
+                    writeReviewScore(line.substring(14));
                     line = reader.readLine();
                     continue;
                 }
 
-                term = Pattern.compile("^review/text:(.*)").matcher(line);
-                if (term.find()) {
+                if (line.startsWith("review/text:")) {
                     textFlag = true;
-                    textBuffer = term.group(1);
+                    textBuffer = line.substring(12);
                     line = reader.readLine();
                     continue;
                 }

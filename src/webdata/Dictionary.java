@@ -24,7 +24,7 @@ public class Dictionary implements Serializable {
     private int[] frequency;
     private long[] postingPtr;
     private short[] length;
-    private byte[] prefixSize;
+    private short[] prefixSize;
 
     private long filePointer = 0;
 
@@ -48,7 +48,7 @@ public class Dictionary implements Serializable {
         frequency = new int[numOfTerms];
         postingPtr = new long[numOfTerms];
         length = new short[numOfTerms];
-        prefixSize = new byte[numOfTerms];
+        prefixSize = new short[numOfTerms];
 
         try (BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(new File(path)))) {
             build(sortedTermsFile, bos, mapping);
@@ -90,7 +90,7 @@ public class Dictionary implements Serializable {
                     if (i > -1) {
                         buildFrequency(termData, i);
                         buildPostingList(termData, i, bos);
-                        termData.clear();
+                        termData = new TreeMap<>();
                     }
                     ++i;
 
@@ -100,7 +100,7 @@ public class Dictionary implements Serializable {
                         concatStr = concatStr.concat(term);
                     }
                     else {
-                        byte psize = findPrefix(prevTerm, term);
+                        short psize = findPrefix(prevTerm, term);
                         prefixSize[i] = psize;
                         concatStr = concatStr.concat(term.substring(psize));
                     }
@@ -115,7 +115,7 @@ public class Dictionary implements Serializable {
             if (i > -1) {
                 buildFrequency(termData, i);
                 buildPostingList(termData, i, bos);
-                termData.clear();
+                termData = new TreeMap<>();
             }
         } catch (IOException e) {
             System.err.println(e.getMessage());
@@ -245,14 +245,14 @@ public class Dictionary implements Serializable {
      * @param curr The second string to check
      * @return The length of the longest common prefix.
      */
-    private byte findPrefix(String prev, String curr) {
+    private short findPrefix(String prev, String curr) {
         int minLength = Math.min(prev.length(), curr.length());
         for (int i = 0; i < minLength; i++) {
             if (prev.charAt(i) != curr.charAt(i)) {
-                return (byte)i;
+                return (short)i;
             }
         }
-        return (byte)minLength;
+        return (short)minLength;
     }
 
     /**

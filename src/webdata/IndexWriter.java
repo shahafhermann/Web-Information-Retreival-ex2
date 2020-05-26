@@ -110,8 +110,9 @@ public class IndexWriter{
         }
     }
 
-    private static String createTempDir(String dir) {
+    private String createTempDir(String dir) {
         String tmpDirName = dir + File.separator + "tmp";
+        removeIndex(tmpDirName);
         File tmpDir = new File(tmpDirName);
         if (!tmpDir.exists()) {
             try{
