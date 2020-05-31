@@ -79,7 +79,7 @@ public class IndexWriter{
                                    tmpDirName);
         sorter.sort(inputFile, sortedTokensFilePath, sortedProductsFilePath);
         removeIndex(tmpDirName);
-        sorter.clear();
+//        sorter.clear();
         takeTime("<<<<<<<<<<< *DONE SECOND PASS + SORT* >>>>>>>>>>");
 
         takeTime("<<<<<<<<<<< *START BUILDING TOKEN DICTIONARY* >>>>>>>>>>");

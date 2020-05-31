@@ -6,10 +6,10 @@ import java.util.*;
 public class main {
     public static void main(String[] args) {
         String dir = "/Users/shahaf/Documents/UNI/אחזור מידע באינטרנט/ex2/indexFiles";
-//        String file = "/Users/shahaf/Documents/UNI/אחזור מידע באינטרנט/datasets/Movies_&_TV.txt";
+        String file = "/Users/shahaf/Documents/UNI/אחזור מידע באינטרנט/datasets/Movies_&_TV.txt";
 //        String file = "/Users/shahaf/Documents/UNI/אחזור מידע באינטרנט/ex2/1000.txt";
 //        String file = "/Users/shahaf/Documents/UNI/אחזור מידע באינטרנט/datasets/Musical_Instruments.txt";
-        String file = "/Users/shahaf/Documents/UNI/אחזור מידע באינטרנט/datasets/Electronics.txt";
+//        String file = "/Users/shahaf/Documents/UNI/אחזור מידע באינטרנט/datasets/Electronics.txt";
 
 
         IndexWriter siw = new IndexWriter();
@@ -18,7 +18,7 @@ public class main {
 
         test1(ir);
 
-        siw.removeIndex(dir);
+//        siw.removeIndex(dir);
     }
 
     private static void takeTime(String msg) {

@@ -8,8 +8,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class Sorter {
     /* Data */
@@ -183,7 +181,7 @@ public class Sorter {
      */
     private void writeMBlocks(ArrayList<webdata.utils.Line> blocks, String fileName){
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(
-                new File(Paths.get(tmpDir, String.format(fileName, 0, numOfTempFiles)).toString())), BLOCK_SIZE)){
+                new File(Paths.get(tmpDir, String.format(fileName, 0, numOfTempFiles)).toString())))){
             // Writes the block lines to the temp file
             for (webdata.utils.Line line:blocks) {
                 writer.write(line.toString());
@@ -208,6 +206,7 @@ public class Sorter {
      */
     public void sort(String in, String outTokens, String outProducts) {
         firstPhase(in);
+        clear();
         IndexWriter.takeTime("<<<<<<<<<<< *DONE FIRST PHASE* >>>>>>>>>>");
         IndexWriter.takeTime("<<<<<<<<<<< *START SECOND PHASE TOKENS* >>>>>>>>>>");
         secondPhase(outTokens, tmpDir, numOfTempFiles, SORT_TEMP_TOKEN_FILE_NAME);
@@ -218,8 +217,8 @@ public class Sorter {
     }
 
     private void copyOut(File in, String out) {
-        try (BufferedReader reader = new BufferedReader(new FileReader(in), BLOCK_SIZE)) {
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(new File(out)), BLOCK_SIZE)) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(in))) {
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(new File(out)))) {
                 String line = reader.readLine();
                 while (line != null) {
                     writer.write(line);
@@ -274,7 +273,7 @@ public class Sorter {
     private void mergeOnce(String out, String tmpPath, int start, int end, String fileName, int prevStep) {
         PriorityQueue<ReaderWrapper> heapOfReaders = new PriorityQueue<>();
 
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(new File(out)), BLOCK_SIZE)) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(new File(out)))) {
             this.initializeReaders(heapOfReaders, tmpPath, start, end, fileName, prevStep);
 
             // While there are more lines left, write the next minimal line to the output
@@ -308,7 +307,7 @@ public class Sorter {
         for (int i = startingFileIndex; i < endingFileIndex; i++) { //todo- check for <= instead
             Path filePath = Paths.get(tmpPath, String.format(fileName, prevStep, i));
             if (Files.exists(filePath)){
-                BufferedReader br = new BufferedReader(new FileReader(filePath.toFile()), BLOCK_SIZE);
+                BufferedReader br = new BufferedReader(new FileReader(filePath.toFile()));
                 String line = br.readLine();
                 if (line != null){
                     heapOfReaders.add(new ReaderWrapper(br, new Line(line)));
