@@ -18,7 +18,7 @@ public class IndexWriter{
     private final String productsFileName = "productFile";
     private final String sortedIndicator = "_sorted";
 
-    private void takeTime(String msg) {
+    static void takeTime(String msg) {
         String timeStamp =  new SimpleDateFormat("HH.mm.ss.SS").format(new java.util.Date());
         System.err.println(msg + " at " + timeStamp);
     }

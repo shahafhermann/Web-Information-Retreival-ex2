@@ -1,9 +1,11 @@
 package webdata.utils;
 
+import java.util.Comparator;
+
 /**
  * This class represents a line in the relation files with idX and two additional columns separated by spaces.
  */
-public class Line implements Comparable<Line> {
+public class Line implements Comparable<Line>{
     private static final String COLUMN_DELIMINATOR = "#";
     private static final int TERM_INDEX = 0;
     private static final int REVIEW_ID_INDEX = 1;
@@ -66,6 +68,8 @@ public class Line implements Comparable<Line> {
         }
         return this.term - o.term;
     }
+
+
 
     /**
      * Returns a string representing the line.

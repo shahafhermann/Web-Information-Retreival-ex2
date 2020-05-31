@@ -70,6 +70,7 @@ public class Dictionary implements Serializable {
      * Update all data structures with it's info.
      */
     private void build(String sortedTermsFile, BufferedOutputStream bos, ArrayList<String> mapping) {
+        StringBuilder sb = new StringBuilder();
         try (BufferedReader reader = new BufferedReader(new FileReader(new File(sortedTermsFile)))){
             String line;
             TreeMap<Integer, Integer> termData = new TreeMap<>();
@@ -95,14 +96,16 @@ public class Dictionary implements Serializable {
                     ++i;
 
                     if (i % K == 0) {
-                        termPtr[(i / K)] = concatStr.length();
+                        termPtr[(i / K)] = sb.length(); // concatStr.length();
                         prefixSize[i] = 0;
-                        concatStr = concatStr.concat(term);
+//                        concatStr = concatStr.concat(term);
+                        sb.append(term);
                     }
                     else {
                         short psize = findPrefix(prevTerm, term);
                         prefixSize[i] = psize;
-                        concatStr = concatStr.concat(term.substring(psize));
+//                        concatStr = concatStr.concat(term.substring(psize));
+                        sb.append(term.substring(psize));
                     }
 
                     length[i] = (short) term.length();
@@ -111,6 +114,8 @@ public class Dictionary implements Serializable {
                 }
                 termData.put(reviewId, frequency);
             }
+
+            concatStr = sb.toString();
 
             if (i > -1) {
                 buildFrequency(termData, i);
