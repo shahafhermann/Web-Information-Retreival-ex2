@@ -1,8 +1,11 @@
 package webdata;
 
 import webdata.utils.Line;
+import webdata.utils.ReaderWrapper;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -14,7 +17,6 @@ public class Sorter {
     private ArrayList<String> productIdsArray;
     private HashMap<String, Integer> tokensMap;
     private HashMap<String, Integer> productIdMap;
-    private HashMap<webdata.utils.Line, Integer> tokenLinesFrequency = new HashMap<>();
     private int numOfReviews = 0;
 
     private ArrayList<webdata.utils.Line> tokenLines = new ArrayList<>();
@@ -25,10 +27,11 @@ public class Sorter {
 
     /* File paths to save the terms lists */
     private String tmpDir;
-    private static final int NUM_OF_REVIEWS_PER_FILE = 1000;
-    private static final String SORT_TEMP_TOKEN_FILE_NAME = "sort_temp_token_%d.txt";
-    private static final String SORT_TEMP_PRODUCT_FILE_NAME = "sort_temp_product_%d.txt";
+    private static final int NUM_OF_REVIEWS_PER_FILE = 10000;
+    private static final String SORT_TEMP_TOKEN_FILE_NAME = "t_%d_%d.txt";
+    private static final String SORT_TEMP_PRODUCT_FILE_NAME = "p_%d_%d.txt";
     private int numOfTempFiles = 0;
+    private final int M = 500;
 
     Sorter(ArrayList<String> tokensArray, ArrayList<String> productIdsArray, String tmpDir) {
         Collections.sort(tokensArray);
@@ -64,18 +67,6 @@ public class Sorter {
      * @param text The text to break
      */
     private void breakText(String text) {
-//        String[] tokens = text.split(SPLIT_TOKENS_REGEX);
-//        for (String token: tokens) {
-//            if (!token.isEmpty()) {
-//                webdata.utils.Line line = createLine(tokensMap.get(token), 0);
-//                if (tokenLinesFrequency.containsKey(line)) {
-//                    int freq = tokenLinesFrequency.get(line);
-//                    tokenLinesFrequency.put(line, freq + 1);
-//                } else {
-//                    tokenLinesFrequency.put(line, 1);
-//                }
-//            }
-//        }
         ArrayList<String> tokens = new ArrayList<>(Arrays.asList(text.split(SPLIT_TOKENS_REGEX)));
         Collections.sort(tokens);
         String prevToken = "";
@@ -166,13 +157,13 @@ public class Sorter {
         }
     }
 
-    private void countFrequencyHelper() {
-        for (webdata.utils.Line line: tokenLinesFrequency.keySet()) {
-            line.setFrequency(tokenLinesFrequency.get(line));
-            tokenLines.add(line);
-        }
-        tokenLinesFrequency = new HashMap<>();
-    }
+//    private void countFrequencyHelper() {
+//        for (webdata.utils.Line line: tokenLinesFrequency.keySet()) {
+//            line.setFrequency(tokenLinesFrequency.get(line));
+//            tokenLines.add(line);
+//        }
+//        tokenLinesFrequency = new HashMap<>();
+//    }
 
     private void createTempFiles() {
 //        countFrequencyHelper();
@@ -192,7 +183,7 @@ public class Sorter {
      */
     private void writeMBlocks(ArrayList<webdata.utils.Line> blocks, String fileName){
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(
-                new File(Paths.get(tmpDir, String.format(fileName, numOfTempFiles)).toString())), BLOCK_SIZE)){
+                new File(Paths.get(tmpDir, String.format(fileName, 0, numOfTempFiles)).toString())), BLOCK_SIZE)){
             // Writes the block lines to the temp file
             for (webdata.utils.Line line:blocks) {
                 writer.write(line.toString());
@@ -226,85 +217,20 @@ public class Sorter {
         IndexWriter.takeTime("<<<<<<<<<<< *DONE SECOND PHASE PRODUCTS* >>>>>>>>>>");
     }
 
-//    /**
-//     * This method performs the second phase of the two phase sort algorithm. It reads all lines from
-//     * numberOfTempFiles temp files into the output file.
-//     * @param out The output file name.
-//     * @param tmpPath The path of the temp files.
-//     * @param numberOfTempFiles The number of temp files.
-//     */
-//    private static void secondPhase(String out, String tmpPath, int numberOfTempFiles, String fileName){
-//        ArrayList<Map.Entry<File, BufferedReader>> readers = new ArrayList<>();
-//        Map<Integer, webdata.utils.Line> chunksLine = new HashMap<>();
-//
-//        try (BufferedWriter writer = new BufferedWriter(new FileWriter(new File(out)), BLOCK_SIZE)){
-//            initializeReaders(readers, chunksLine, tmpPath, numberOfTempFiles, fileName);
-//            int minimumChunkIndex;
-//
-//            // While there are more lines left, write the next minimal line to the output
-//            while (!chunksLine.isEmpty()){
-//                minimumChunkIndex = getMinimumChunkIndex(chunksLine);
-//                writer.write(chunksLine.get(minimumChunkIndex).toString());
-//                writer.newLine();
-//
-//                String newLine = readers.get(minimumChunkIndex).getValue().readLine();
-//                // If this was the last line in the file, close the reader and delete the temp file
-//                if (newLine != null)
-//                    chunksLine.put(minimumChunkIndex, new webdata.utils.Line(newLine));
-//                else {
-//                    chunksLine.remove(minimumChunkIndex);
-//                    readers.get(minimumChunkIndex).getValue().close();
-//                    readers.get(minimumChunkIndex).getKey().delete();
-//                    readers.set(minimumChunkIndex, null);
-//                }
-//            }
-//        } catch (IOException e) {
-//            System.err.println(e.getMessage());
-//        }
-//    }
-//
-//    /**
-//     * Gets the index of the chunk with the minimum value.
-//     * @param chunksLine None empty mapping between chunk index and current line from the chunk.
-//     * @return The index of the chunk with the minimal line.
-//     */
-//    private static int getMinimumChunkIndex(Map<Integer, webdata.utils.Line> chunksLine) {
-//        int minimumChunkIndex = Collections.min(chunksLine.keySet());
-//        for (int key : chunksLine.keySet()) {
-//            if (chunksLine.get(key).compareTo(chunksLine.get(minimumChunkIndex)) < 0)
-//                minimumChunkIndex = key;
-//        }
-//
-//        return minimumChunkIndex;
-//    }
-//
-//    /**
-//     * Initializes the temp file reader, and the chunk lines by reading the first line from each temp file (containing
-//     * a chunk).
-//     * @param readers The readers to initialize - arraylist of mappings between the file object and the reader
-//     *                reading it)
-//     * @param chunksLine The lines to initialize - mapping between the index of the reader and the current line
-//     *                   read from that file.
-//     * @param tmpPath The path to the temp files.
-//     * @param numberOfTempFiles The number of temp files.
-//     * @throws IOException IOException opening/reading the temp files.
-//     */
-//    private static void initializeReaders(ArrayList<Map.Entry<File, BufferedReader>> readers,
-//                                          Map<Integer, webdata.utils.Line> chunksLine, String tmpPath,
-//                                          int numberOfTempFiles, String fileName) throws IOException {
-//        for (int i = 0; i < numberOfTempFiles; i++) {
-//            File file = new File(Paths.get(tmpPath, String.format(fileName, i)).toString());
-//            readers.add(new AbstractMap.SimpleEntry<>(file, new BufferedReader(new FileReader(file), BLOCK_SIZE)));
-//            String line = readers.get(i).getValue().readLine();
-//
-//            // Add the line read to the line map and update the minimum
-//            if (line != null)
-//                chunksLine.put(i, new webdata.utils.Line(line));
-//        }
-//    }
-
-
-
+    private void copyOut(File in, String out) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(in), BLOCK_SIZE)) {
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(new File(out)), BLOCK_SIZE)) {
+                String line = reader.readLine();
+                while (line != null) {
+                    writer.write(line);
+                    writer.newLine();
+                    line = reader.readLine();
+                }
+            }
+        } catch (IOException e) {
+            System.err.println(e.getMessage());
+        }
+    }
 
     /**
      * This method performs the second phase of the two phase sort algorithm. It reads all lines from
@@ -314,76 +240,93 @@ public class Sorter {
      * @param numberOfTempFiles The number of temp files.
      */
     private void secondPhase(String out, String tmpPath, int numberOfTempFiles, String fileName){
-        ArrayList<Map.Entry<File, BufferedReader>> readers = new ArrayList<>();
-        Map<Line, Integer> chunksLine = new HashMap<>();
+        double mergeSteps = Math.ceil(Math.log(numberOfTempFiles) / Math.log(M));
+        double numOfFiles = numberOfTempFiles;
+        String outputFileName = out;
+        if (mergeSteps == 0) {
+            String in = String.format(fileName, 0, 0);
+            copyOut(Paths.get(tmpDir, in).toFile(), out);
+            try {
+                Files.deleteIfExists(Paths.get(tmpDir, in));
+            } catch (IOException e) {
+                System.err.println(e.getMessage());
+            }
+            return;
+        }
+        for ( int currStep = 1; currStep <= mergeSteps; currStep++) {
+            numOfFiles = Math.ceil(numOfFiles / M);
 
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(new File(out)), BLOCK_SIZE)){
-            this.initializeReaders(readers, chunksLine, tmpPath, numberOfTempFiles, fileName);
-            int minimumChunkIndex;
-            Line minimumChunkLine;
-
-            int x = -1; // todo remove
-            // While there are more lines left, write the next minimal line to the output
-            while (!chunksLine.isEmpty()){
-                ++x;
-                if (x % 1000000 == 0) {
-                    System.err.print(x + " : ");
-                    IndexWriter.takeTime("<<<<<<<<<<< *IN THE SECOND PHASE WHILE* >>>>>>>>>>");
-                }
-                minimumChunkLine = getMinimumChunkLine(chunksLine); //todo- extract the tuple to minimumChunkIndex, minimumChunkLine
-                minimumChunkIndex = chunksLine.get(minimumChunkLine);
-                writer.write(minimumChunkLine.toString()); //use here minimumChunkLine.toString()
-                writer.newLine();
-
-                String newLine = readers.get(minimumChunkIndex).getValue().readLine();
-                // If this was the last line in the file, close the reader and delete the temp file
-                chunksLine.remove(minimumChunkLine); //change to remove minimumChunkLine
-                if (newLine != null) {
-                    chunksLine.put(new Line(newLine), minimumChunkIndex);
+            int start = 0;
+            int end = start + M;
+            for (int outputFileIndex = 0; outputFileIndex < numOfFiles; outputFileIndex++){
+                if ((currStep == mergeSteps) && (outputFileIndex == (numOfFiles - 1))) {
+                    outputFileName = out;
                 } else {
-                    readers.get(minimumChunkIndex).getValue().close();
-                    readers.get(minimumChunkIndex).getKey().delete();
-                    readers.set(minimumChunkIndex, null);
+                    outputFileName = Paths.get(tmpDir, String.format(fileName, currStep, outputFileIndex)).toString();
+                }
+                mergeOnce(outputFileName, tmpPath, start, end , fileName, currStep - 1);
+                start = end;
+                end += M;
+            }
+        }
+    }
+
+    private void mergeOnce(String out, String tmpPath, int start, int end, String fileName, int prevStep) {
+        PriorityQueue<ReaderWrapper> heapOfReaders = new PriorityQueue<>();
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(new File(out)), BLOCK_SIZE)) {
+            this.initializeReaders(heapOfReaders, tmpPath, start, end, fileName, prevStep);
+
+            // While there are more lines left, write the next minimal line to the output
+            while (!heapOfReaders.isEmpty()) {
+                ReaderWrapper minReader = heapOfReaders.poll();
+                writer.write(minReader.getCurrLine().toString()); //use here minimumChunkLine.toString()
+                writer.newLine();
+                if (minReader.advancePtr()){
+                    heapOfReaders.add(minReader);
                 }
             }
+            writer.flush();
+            deleteTempFiles(start, end, fileName, prevStep);
         } catch (IOException e) {
             System.err.println(e.getMessage());
         }
     }
 
     /**
-     * Gets the index of the chunk with the minimum value.
-     * @param chunksLine None empty mapping between chunk index and current line from the chunk.
-     * @return The index of the chunk with the minimal line.
+     *
+     * @param heapOfReaders
+     * @param tmpPath
+     * @param endingFileIndex
+     * @param startingFileIndex
+     * @param fileName
+     * @throws IOException
      */
-    private webdata.utils.Line getMinimumChunkLine(Map<Line, Integer> chunksLine) {
-        Line minimumChunkLine = Collections.min(chunksLine.keySet());
-        return minimumChunkLine; //todo: return tuple of chunksLine.get(minimumChunkIndex), minimumChunkLine
-    }
-
-    /**
-     * Initializes the temp file reader, and the chunk lines by reading the first line from each temp file (containing
-     * a chunk).
-     * @param readers The readers to initialize - arraylist of mappings between the file object and the reader
-     *                reading it)
-     * @param chunksLine The lines to initialize - mapping between the index of the reader and the current line
-     *                   read from that file.
-     * @param tmpPath The path to the temp files.
-     * @param numberOfTempFiles The number of temp files.
-     * @throws IOException IOException opening/reading the temp files.
-     */
-    private void initializeReaders(ArrayList<Map.Entry<File, BufferedReader>> readers,
-                                   Map<Line, Integer> chunksLine, String tmpPath, int numberOfTempFiles,
-                                   String fileName)
+    private void initializeReaders(PriorityQueue<ReaderWrapper> heapOfReaders, String tmpPath,
+                                   int startingFileIndex, int endingFileIndex, String fileName, int prevStep)
             throws IOException {
-        for (int i = 0; i < numberOfTempFiles; i++) {
-            File file = new File(Paths.get(tmpPath, String.format(fileName, i)).toString());
-            readers.add(new AbstractMap.SimpleEntry<>(file, new BufferedReader(new FileReader(file), BLOCK_SIZE)));
-            String line = readers.get(i).getValue().readLine();
-
-            // Add the line read to the line map and update the minimum
-            if (line != null)
-                chunksLine.put(new Line(line), i);
+        for (int i = startingFileIndex; i < endingFileIndex; i++) { //todo- check for <= instead
+            Path filePath = Paths.get(tmpPath, String.format(fileName, prevStep, i));
+            if (Files.exists(filePath)){
+                BufferedReader br = new BufferedReader(new FileReader(filePath.toFile()), BLOCK_SIZE);
+                String line = br.readLine();
+                if (line != null){
+                    heapOfReaders.add(new ReaderWrapper(br, new Line(line)));
+                }
+            }else{
+                break;
+            }
         }
     }
+
+    private void deleteTempFiles(int start, int end, String fileName, int prevStep) {
+        try {
+            for (;start < end; ++start) {
+                Files.deleteIfExists(Paths.get(tmpDir, String.format(fileName, prevStep, start)));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 }

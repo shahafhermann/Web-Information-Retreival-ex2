@@ -8,8 +8,8 @@ public class main {
         String dir = "/Users/shahaf/Documents/UNI/אחזור מידע באינטרנט/ex2/indexFiles";
 //        String file = "/Users/shahaf/Documents/UNI/אחזור מידע באינטרנט/datasets/Movies_&_TV.txt";
 //        String file = "/Users/shahaf/Documents/UNI/אחזור מידע באינטרנט/ex2/1000.txt";
-        String file = "/Users/shahaf/Documents/UNI/אחזור מידע באינטרנט/datasets/Musical_Instruments.txt";
-//        String file = "/Users/shahaf/Documents/UNI/אחזור מידע באינטרנט/datasets/Electronics.txt";
+//        String file = "/Users/shahaf/Documents/UNI/אחזור מידע באינטרנט/datasets/Musical_Instruments.txt";
+        String file = "/Users/shahaf/Documents/UNI/אחזור מידע באינטרנט/datasets/Electronics.txt";
 
 
         IndexWriter siw = new IndexWriter();
