@@ -1,6 +1,8 @@
 package webdata;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 
@@ -172,7 +174,11 @@ public class IndexWriter{
                                        ArrayList<String> mapping) {
         Dictionary dict = new Dictionary(numOfTerms, out, isProduct, dir, mapping);
         /* Delete sorted */
-        deleteFile(dir, out);
+        try {
+            Files.deleteIfExists(Paths.get(out));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         return dict;
     }
 }

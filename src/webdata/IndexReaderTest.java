@@ -2,7 +2,6 @@ package webdata;
 
 import org.junit.jupiter.api.*;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -246,11 +245,11 @@ class IndexReaderTest {
 	}
 
 
-	/** comment for not checking removeIndex method of slowWriter!. */
-	@AfterAll
-	static void removeDir(){
-		indexWriter.removeIndex(indexDir);
-		File directory = new File(indexDir);
-		assertFalse(directory.exists());
-	}
+//	/** comment for not checking removeIndex method of slowWriter!. */
+//	@AfterAll
+//	static void removeDir(){
+//		indexWriter.removeIndex(indexDir);
+//		File directory = new File(indexDir);
+//		assertFalse(directory.exists());
+//	}
 }
