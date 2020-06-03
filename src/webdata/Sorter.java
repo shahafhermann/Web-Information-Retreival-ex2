@@ -29,7 +29,7 @@ public class Sorter {
     private static final String SORT_TEMP_TOKEN_FILE_NAME = "t_%d_%d.txt";
     private static final String SORT_TEMP_PRODUCT_FILE_NAME = "p_%d_%d.txt";
     private int numOfTempFiles = 0;
-    private final int M = 500;
+    private final int M = 1500;
 
     Sorter(ArrayList<String> tokensArray, ArrayList<String> productIdsArray, String tmpDir) {
         Collections.sort(tokensArray);
@@ -121,11 +121,8 @@ public class Sorter {
                         breakText(textBuffer.toLowerCase());
                     }
                     ++numOfReviews;
-//                    if (numOfReviews == 100001) {  // TODO: delete later
+//                    if (numOfReviews == 1001) {  // TODO: delete later
 //                        break;
-//                    }
-//                    if (numOfReviews % 10001  == 0) {
-//                        System.err.println("*************" + numOfReviews + "*************");
 //                    }
                     if (numOfReviews % (NUM_OF_REVIEWS_PER_FILE + 1)  == 0) {
                         createTempFiles();
@@ -155,16 +152,7 @@ public class Sorter {
         }
     }
 
-//    private void countFrequencyHelper() {
-//        for (webdata.utils.Line line: tokenLinesFrequency.keySet()) {
-//            line.setFrequency(tokenLinesFrequency.get(line));
-//            tokenLines.add(line);
-//        }
-//        tokenLinesFrequency = new HashMap<>();
-//    }
-
     private void createTempFiles() {
-//        countFrequencyHelper();
         Collections.sort(tokenLines);
         Collections.sort(productIdLines);
         writeMBlocks(tokenLines, SORT_TEMP_TOKEN_FILE_NAME);
@@ -191,11 +179,6 @@ public class Sorter {
             System.err.println(e.getMessage());
         }
     }
-
-
-    private static final int BLOCK_SIZE = (int) Math.pow(2, 19);
-//    private static final int NUMBER_LINES_IN_BLOCK = (int) Math.pow(2, 10);
-//    private static final int M = (int) Math.pow(2, 9);  // TODO check numbers
 
     /**
      * This method performs merge sort on the first column of the table in the given in file, R(A,B,C) or S(A,D,E),

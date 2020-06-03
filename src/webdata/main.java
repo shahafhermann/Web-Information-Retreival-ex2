@@ -28,15 +28,15 @@ public class main {
 
     private static void test1(IndexReader ir) {
         System.err.println("\n\n--------- Started TEST ---------\n\n");
-        int[] vals = {-1, 0, 1000, 99, 10001, 2000000, 8000000};
-        for (int val: vals) {
+//        int[] vals = {-1, 0, 1, 1000, 99, 10001, 2000000, 8000000, 7850072, 7850073, 7850071};
+//        for (int val: vals) {
 //            System.out.println("Value: " + val);
-            ir.getProductId(val);
-            ir.getReviewScore(val);
-            ir.getReviewHelpfulnessNumerator(val);
-            ir.getReviewHelpfulnessDenominator(val);
-            ir.getReviewLength(val);
-        }
+//            System.out.println(ir.getProductId(val));
+//            System.out.println(ir.getReviewScore(val));
+//            System.out.println(ir.getReviewHelpfulnessNumerator(val));
+//            System.out.println(ir.getReviewHelpfulnessDenominator(val));
+//            System.out.println(ir.getReviewLength(val));
+//        }
 
         /* ****/
         String[] svals = {"spill" , "wistful", "peaceful" , "cough" ,	"crooked" , "special", 	"used" ,
@@ -44,7 +44,7 @@ public class main {
                 "bye", "feeling", "manage", "story", "fixed", "rude", "modern", "ticket", "beginner",
                 "summer", "observation", "respect", "dynamic", "delicious", "quiet", "bridge", "strong",
                 "addicted", "reflective", "unlock", "silent", "attraction", "way", "assorted", "spoon",
-                "scratch", "baseball", "lying", "unwieldy", "mug", "to", "serious", "lumber", "drum",
+                "scratch", "baseball", "lying", "unwieldy", "mug", "tall", "serious", "lumber", "drum",
                 "living", "unable", "health", "whip", "tempt", "testy", "window", "part", "return", "value",
                 "spray", "adhesive", "grip", "vague", "roasted", "smelly", "fold", "purple", "cloudy",
                 "prevent", "mysterious", "replace", "bucket", "moor", "certain", "pleasant", "introduce",
@@ -52,31 +52,43 @@ public class main {
                 "true", "exciting", "desk", "present", "try", "fabulous", "tiger", "tiny", "cry",
                 "inexpensive", "straw", "ugly", "circle", "holiday"};
         System.out.println();
-        takeTime("<<<<<<<<<<< *STARTED getTokenFrequency for 100 values* >>>>>>>>>>");
+        String tokenFrequencyStart =  new SimpleDateFormat("HH.mm.ss.SS").format(new java.util.Date());
         for (String s: svals) {
             int i = ir.getTokenFrequency(s);
         }
-        takeTime("<<<<<<<<<<< *DONE getTokenFrequency for 100 values* >>>>>>>>>>");
-        takeTime("<<<<<<<<<<< *STARTED getReviewsWithTokens for 100 values* >>>>>>>>>>");
+        String tokenFrequencyEnd =  new SimpleDateFormat("HH.mm.ss.SS").format(new java.util.Date());
+        System.err.println("getTokenFrequency: start: " + tokenFrequencyStart + " , end: " + tokenFrequencyEnd);
+
+
+        tokenFrequencyStart =  new SimpleDateFormat("HH.mm.ss.SS").format(new java.util.Date());
         for (String s: svals) {
             Enumeration<Integer> e = ir.getReviewsWithToken(s);
         }
-        takeTime("<<<<<<<<<<< *DONE getReviewsWithTokens for 100 values* >>>>>>>>>>");
+        tokenFrequencyEnd =  new SimpleDateFormat("HH.mm.ss.SS").format(new java.util.Date());
+        System.err.println("getReviewsWithToken: start: " + tokenFrequencyStart + " , end: " + tokenFrequencyEnd);
 
-        String[] svals2 = {"to", "health", "popcorn", "zip", "Popcorn", "apple"};
-        for (String s: svals2) {
-            ir.getTokenFrequency(s);
-            ir.getTokenCollectionFrequency(s);
-            Enumeration<Integer> e = ir.getReviewsWithToken(s);
-        }
-        /* ****/
-
-        ir.getNumberOfReviews();
-        ir.getTokenSizeOfReviews();
-        String[] pvals = {"B001E4KFG0", "B0019CW0HE", "B0019CW0HF"};
-        for (String s: pvals) {
-            Enumeration<Integer> e = ir.getProductReviews(s);
-        }
+//        String[] svals2 = {"tall", "health", "apple"};
+//        for (String s: svals2) {
+//            System.out.println(ir.getTokenFrequency(s));
+//            System.out.println(ir.getTokenCollectionFrequency(s));
+//            Enumeration<Integer> e = ir.getReviewsWithToken(s);
+//            while (e.hasMoreElements()) {
+//                System.out.println(e.nextElement());
+//            }
+//        }
+//        /* ****/
+//
+//        System.out.println();
+//        System.out.println("Parameterless methods");
+//        System.out.println(ir.getNumberOfReviews());
+//        System.out.println(ir.getTokenSizeOfReviews());
+//        String[] pvals = {"B0001Z3TLQ", "B0019CW0HE", "B0019CW0HF"};
+//        for (String s: pvals) {
+//            Enumeration<Integer> e = ir.getProductReviews(s);
+//            while (e.hasMoreElements()) {
+//                System.out.println(e.nextElement());
+//            }
+//        }
     }
 
 
