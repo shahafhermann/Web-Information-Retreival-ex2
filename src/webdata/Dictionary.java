@@ -34,6 +34,7 @@ public class Dictionary implements Serializable {
      * @param sortedTermsFile The sorted file of terms
      * @param isProduct Indicates if the term is productId or token
      * @param dir The directory in which the dictionary is saved
+     * @param mapping A map of a number to term (i is mapped to the string at index i)
      */
     Dictionary(int numOfTerms, String sortedTermsFile, Boolean isProduct, String dir, ArrayList<String> mapping) {
         this.isProduct = isProduct;
@@ -96,15 +97,13 @@ public class Dictionary implements Serializable {
                     ++i;
 
                     if (i % K == 0) {
-                        termPtr[(i / K)] = sb.length(); // concatStr.length();
+                        termPtr[(i / K)] = sb.length();
                         prefixSize[i] = 0;
-//                        concatStr = concatStr.concat(term);
                         sb.append(term);
                     }
                     else {
                         short psize = findPrefix(prevTerm, term);
                         prefixSize[i] = psize;
-//                        concatStr = concatStr.concat(term.substring(psize));
                         sb.append(term.substring(psize));
                     }
 

@@ -154,9 +154,6 @@ public class ReviewsParser {
                         breakText(textBuffer.toLowerCase());
                     }
                     ++numOfReviews;
-//                    if (numOfReviews == 1001) {  // TODO: delete later
-//                        break;
-//                    }
                     term = line.substring(19);
                     productIds.append(term);
                     productIdSet.add(term);

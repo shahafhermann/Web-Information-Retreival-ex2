@@ -20,11 +20,6 @@ public class IndexWriter{
     private final String productsFileName = "productFile";
     private final String sortedIndicator = "_sorted";
 
-    static void takeTime(String msg) {
-        String timeStamp =  new SimpleDateFormat("HH.mm.ss.SS").format(new java.util.Date());
-        System.err.println(msg + " at " + timeStamp);
-    }
-
     /**
      * Given product review data, creates an on disk index
      * inputFile is the path to the file containing the review data
@@ -51,22 +46,16 @@ public class IndexWriter{
         String sortedTokensFilePath = dir + File.separator + tokensFileName + sortedIndicator;
         String sortedProductsFilePath = dir + File.separator + productsFileName + sortedIndicator;
 
-        takeTime("<<<<<<<<<<< *STARTED FIRST PASS* >>>>>>>>>>");
         ReviewsParser parser = new ReviewsParser();
         parser.parseFile(inputFile);
-        takeTime("<<<<<<<<<<< *DONE FIRST PASS* >>>>>>>>>>");
 
-        takeTime("<<<<<<<<<<< *STARTED BUILDING REVIEW DATA* >>>>>>>>>>");
         ReviewData rd = new ReviewData(parser.getProductIds(), parser.getReviewHelpfulnessNumerator(),
                 parser.getReviewHelpfulnessDenominator(), parser.getReviewScore(),
                 parser.getTokensPerReview(), parser.getNumOfReviews());
-        takeTime("<<<<<<<<<<< *DONE BUILDING REVIEW DATA* >>>>>>>>>>");
 
-        takeTime("<<<<<<<<<<< *START WRITING REVIEW DATA TO FILE* >>>>>>>>>>");
         try (ObjectOutputStream reviewDataWriter = new ObjectOutputStream(
                 new FileOutputStream(dir + File.separator + reviewDataFileName))) {
             reviewDataWriter.writeObject(rd);
-            takeTime("<<<<<<<<<<< *DONE WRITING REVIEW DATA TO FILE* >>>>>>>>>>");
         } catch(IOException e) {
             System.err.println(e.getMessage());
             System.exit(1);
@@ -75,37 +64,27 @@ public class IndexWriter{
         parser.clear();
 
         String tmpDirName = createTempDir(dir);
-        takeTime("<<<<<<<<<<< *START SECOND PASS + SORT* >>>>>>>>>>");
         Sorter sorter = new Sorter(new ArrayList<>(parser.getTokenSet()),
                                    new ArrayList<>(parser.getProductIdSet()),
                                    tmpDirName);
         sorter.sort(inputFile, sortedTokensFilePath, sortedProductsFilePath);
         removeIndex(tmpDirName);
-//        sorter.clear();
-        takeTime("<<<<<<<<<<< *DONE SECOND PASS + SORT* >>>>>>>>>>");
 
-        takeTime("<<<<<<<<<<< *START BUILDING TOKEN DICTIONARY* >>>>>>>>>>");
+
         Dictionary tokenDict = buildDictionary(parser.getNumOfTokens(), sortedTokensFilePath,
                 false, dir, sorter.getTokensArray());
-        takeTime("<<<<<<<<<<< *DONE BUILDING TOKEN DICTIONARY* >>>>>>>>>>");
-        takeTime("<<<<<<<<<<< *START BUILDING PRODUCT DICTIONARY* >>>>>>>>>>");
         Dictionary productDict = buildDictionary(parser.getNumOfproducts(), sortedProductsFilePath,
                 true, dir, sorter.getProductIdsArray());
-        takeTime("<<<<<<<<<<< *DONE BUILDING PRODUCT DICTIONARY* >>>>>>>>>>");
 
         try {
             /* Write the new files */
-            takeTime("<<<<<<<<<<< *START WRITING TOKEN DICT TO FILE* >>>>>>>>>>");
             ObjectOutputStream tokenDictWriter = new ObjectOutputStream(new FileOutputStream(dir + File.separator + tokenDictFileName));
             tokenDictWriter.writeObject(tokenDict);
             tokenDictWriter.close();
-            takeTime("<<<<<<<<<<< *DONE WRITING TOKEN DICT TO FILE* >>>>>>>>>>");
 
-            takeTime("<<<<<<<<<<< *START WRITING PRODUCT DICT TO FILE* >>>>>>>>>>");
             ObjectOutputStream productDictWriter = new ObjectOutputStream(new FileOutputStream(dir + File.separator + productDictFileName));
             productDictWriter.writeObject(productDict);
             productDictWriter.close();
-            takeTime("<<<<<<<<<<< *DONE WRITING PRODUCT DICT TO FILE* >>>>>>>>>>");
         } catch(IOException e) {
             System.err.println(e.getMessage());
             System.exit(1);
@@ -170,6 +149,15 @@ public class IndexWriter{
         }
     }
 
+    /**
+     * Build a dictionary object
+     * @param numOfTerms Number of terms in the file
+     * @param out The sorted file of terms
+     * @param isProduct Indicates if the term is productId or token
+     * @param dir The directory in which the dictionary is saved
+     * @param mapping A map of a number to term (i is mapped to the string at index i)
+     * @return The built dictionary
+     */
     private Dictionary buildDictionary(int numOfTerms, String out, Boolean isProduct, String dir,
                                        ArrayList<String> mapping) {
         Dictionary dict = new Dictionary(numOfTerms, out, isProduct, dir, mapping);

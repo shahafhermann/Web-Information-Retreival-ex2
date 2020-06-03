@@ -1,7 +1,5 @@
 package webdata.utils;
 
-import java.util.Comparator;
-
 /**
  * This class represents a line in the relation files with idX and two additional columns separated by spaces.
  */
@@ -10,7 +8,6 @@ public class Line implements Comparable<Line>{
     private static final int TERM_INDEX = 0;
     private static final int REVIEW_ID_INDEX = 1;
     private static final int FREQUENCY_INDEX = 2;
-
 
     // Data members
     private int term;
@@ -54,6 +51,10 @@ public class Line implements Comparable<Line>{
      */
     public int getFrequency() { return frequency; }
 
+    /**
+     * Set the line's frequency member
+     * @param freq The frequency to set
+     */
     public void setFrequency(int freq) { this.frequency = freq; }
 
     /**
@@ -68,8 +69,6 @@ public class Line implements Comparable<Line>{
         }
         return this.term - o.term;
     }
-
-
 
     /**
      * Returns a string representing the line.

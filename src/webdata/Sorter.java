@@ -9,6 +9,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
+/**
+ * A class for sorting the dataset
+ */
 public class Sorter {
     /* Data */
     private ArrayList<String> tokensArray;
@@ -29,8 +32,14 @@ public class Sorter {
     private static final String SORT_TEMP_TOKEN_FILE_NAME = "t_%d_%d.txt";
     private static final String SORT_TEMP_PRODUCT_FILE_NAME = "p_%d_%d.txt";
     private int numOfTempFiles = 0;
-    private final int M = 1500;
+    private final int M = 1000;
 
+    /**
+     * Constructor
+     * @param tokensArray ArrayList of token Strings
+     * @param productIdsArray ArrayList of product id Strings
+     * @param tmpDir Directory of temp files
+     */
     Sorter(ArrayList<String> tokensArray, ArrayList<String> productIdsArray, String tmpDir) {
         Collections.sort(tokensArray);
         this.tokensArray = tokensArray;
@@ -43,11 +52,19 @@ public class Sorter {
         this.tmpDir = tmpDir;
     }
 
+    /**
+     * Clear data members
+     */
     void clear() {
         tokensMap = new HashMap<>();
         productIdMap = new HashMap<>();
     }
 
+    /**
+     * Build a hash table from the given ArrayList, where the String at index i is mapped to i.
+     * @param toConvert The ArrayList to build from
+     * @return The newly created HashMap
+     */
     private static HashMap<String, Integer> buildHashMap(ArrayList<String> toConvert) {
         HashMap<String, Integer> hmap = new HashMap<>();
         for (int i = 0; i < toConvert.size(); ++i) {
@@ -56,8 +73,14 @@ public class Sorter {
         return hmap;
     }
 
+    /**
+     * Get the ArrayList of token Strings
+     */
     ArrayList<String> getTokensArray() { return tokensArray; }
 
+    /**
+     * Get the ArrayList of product id Strings
+     */
     ArrayList<String> getProductIdsArray() { return productIdsArray; }
 
     /**
@@ -121,9 +144,6 @@ public class Sorter {
                         breakText(textBuffer.toLowerCase());
                     }
                     ++numOfReviews;
-//                    if (numOfReviews == 1001) {  // TODO: delete later
-//                        break;
-//                    }
                     if (numOfReviews % (NUM_OF_REVIEWS_PER_FILE + 1)  == 0) {
                         createTempFiles();
                     }
@@ -152,6 +172,9 @@ public class Sorter {
         }
     }
 
+    /**
+     * Create temp files for the sorting process
+     */
     private void createTempFiles() {
         Collections.sort(tokenLines);
         Collections.sort(productIdLines);
@@ -190,13 +213,8 @@ public class Sorter {
     public void sort(String in, String outTokens, String outProducts) {
         firstPhase(in);
         clear();
-        IndexWriter.takeTime("<<<<<<<<<<< *DONE FIRST PHASE* >>>>>>>>>>");
-        IndexWriter.takeTime("<<<<<<<<<<< *START SECOND PHASE TOKENS* >>>>>>>>>>");
         secondPhase(outTokens, tmpDir, numOfTempFiles, SORT_TEMP_TOKEN_FILE_NAME);
-        IndexWriter.takeTime("<<<<<<<<<<< *DONE SECOND PHASE TOKENS* >>>>>>>>>>");
-        IndexWriter.takeTime("<<<<<<<<<<< *START SECOND PHASE PRODUCTS* >>>>>>>>>>");
         secondPhase(outProducts, tmpDir, numOfTempFiles, SORT_TEMP_PRODUCT_FILE_NAME);
-        IndexWriter.takeTime("<<<<<<<<<<< *DONE SECOND PHASE PRODUCTS* >>>>>>>>>>");
     }
 
     private void copyOut(File in, String out) {
@@ -253,6 +271,15 @@ public class Sorter {
         }
     }
 
+    /**
+     * Merge one chunk of files, starting at 'start' and ending at 'end', to a single merged file.
+     * @param out A single sorted file for the chunk
+     * @param tmpPath the path of the temp files directory
+     * @param start first file to sort
+     * @param end last file to sort
+     * @param fileName The final sorted file name
+     * @param prevStep
+     */
     private void mergeOnce(String out, String tmpPath, int start, int end, String fileName, int prevStep) {
         PriorityQueue<ReaderWrapper> heapOfReaders = new PriorityQueue<>();
 
@@ -262,7 +289,7 @@ public class Sorter {
             // While there are more lines left, write the next minimal line to the output
             while (!heapOfReaders.isEmpty()) {
                 ReaderWrapper minReader = heapOfReaders.poll();
-                writer.write(minReader.getCurrLine().toString()); //use here minimumChunkLine.toString()
+                writer.write(minReader.getCurrLine().toString());
                 writer.newLine();
                 if (minReader.advancePtr()){
                     heapOfReaders.add(minReader);
@@ -276,18 +303,18 @@ public class Sorter {
     }
 
     /**
-     *
-     * @param heapOfReaders
-     * @param tmpPath
-     * @param endingFileIndex
-     * @param startingFileIndex
-     * @param fileName
+     * Initialize an array of readers to read from the files.
+     * @param heapOfReaders An object wrapping readers from file as a minimum heap
+     * @param tmpPath the path of the temp files directory
+     * @param endingFileIndex last file to read from
+     * @param startingFileIndex first file to read from
+     * @param fileName The final sorted file name
      * @throws IOException
      */
     private void initializeReaders(PriorityQueue<ReaderWrapper> heapOfReaders, String tmpPath,
                                    int startingFileIndex, int endingFileIndex, String fileName, int prevStep)
             throws IOException {
-        for (int i = startingFileIndex; i < endingFileIndex; i++) { //todo- check for <= instead
+        for (int i = startingFileIndex; i < endingFileIndex; i++) {
             Path filePath = Paths.get(tmpPath, String.format(fileName, prevStep, i));
             if (Files.exists(filePath)){
                 BufferedReader br = new BufferedReader(new FileReader(filePath.toFile()));
@@ -301,6 +328,13 @@ public class Sorter {
         }
     }
 
+    /**
+     * Delete the temp files created in the sorting process
+     * @param start first file to delete
+     * @param end last file to delete
+     * @param fileName The file name to delete. this is a template
+     * @param prevStep this is required for the file name's template
+     */
     private void deleteTempFiles(int start, int end, String fileName, int prevStep) {
         try {
             for (;start < end; ++start) {

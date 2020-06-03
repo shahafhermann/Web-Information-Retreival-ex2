@@ -13,32 +13,23 @@ public class IndexReader {
     Dictionary productDict;
     ReviewData rd;
 
-    private void takeTime(String msg) {
-        String timeStamp =  new SimpleDateFormat("HH.mm.ss.SS").format(new java.util.Date());
-        System.err.println(msg + " at " + timeStamp);
-    }
-
     /**
      * Creates an IndexReader which will read from the given directory
      * @param dir The directory to read from.
      */
     public IndexReader(String dir) {
         try {
-            takeTime("<<<<<<<<<<< *START BUILDING INDEX READER* >>>>>>>>>>");
             ObjectInputStream tokenDictReader = new ObjectInputStream(new FileInputStream(dir + File.separator + IndexWriter.tokenDictFileName));
             tokenDict = (Dictionary) tokenDictReader.readObject();
             tokenDictReader.close();
-            takeTime("<<<<<<<<<<< *DONE READING TOKEN DICT TO FILE* >>>>>>>>>>");
 
             ObjectInputStream productDictReader = new ObjectInputStream(new FileInputStream(dir + File.separator + IndexWriter.productDictFileName));
             productDict = (Dictionary) productDictReader.readObject();
             productDictReader.close();
-            takeTime("<<<<<<<<<<< *DONE READING PRODUCT DICT TO FILE* >>>>>>>>>>");
 
             ObjectInputStream reviewDataReader = new ObjectInputStream(new FileInputStream(dir + File.separator + IndexWriter.reviewDataFileName));
             rd = (ReviewData) reviewDataReader.readObject();
             reviewDataReader.close();
-            takeTime("<<<<<<<<<<< *DONE READING REVIEW DATA TO FILE* >>>>>>>>>>");
         } catch(IOException|ClassNotFoundException e) {
             System.err.println(e.getMessage());
             System.exit(1);
